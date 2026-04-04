@@ -7,10 +7,10 @@ const footerLinks = {
     { label: "Download", href: "/download" },
   ],
   Community: [
-    { label: "GitHub", href: "https://github.com/clawicu" },
+    { label: "GitHub", href: "https://github.com/SonicBotMan/clawicu" },
     {
       label: "Issues",
-      href: "https://github.com/clawicu/clawicu/issues",
+      href: "https://github.com/SonicBotMan/clawicu/issues",
     },
   ],
 };
@@ -75,7 +75,7 @@ export function Footer() {
           </div>
           <div className="flex items-center gap-4">
             <a
-              href="https://github.com/clawicu"
+              href="https://github.com/SonicBotMan/clawicu"
               className="text-[#8892b0] transition-colors hover:text-[#f0f4ff]"
               target="_blank"
               rel="noopener noreferrer"

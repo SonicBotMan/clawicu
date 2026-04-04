@@ -31,7 +31,7 @@ const ctaItems: CTAItem[] = [
   {
     icon: Github,
     label: "GitHub",
-    href: "https://github.com/clawicu",
+    href: "https://github.com/SonicBotMan/clawicu",
     external: true,
     variant: "secondary",
   },

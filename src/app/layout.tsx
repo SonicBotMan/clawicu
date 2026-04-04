@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     "configuration repair",
     "daemon management",
   ],
-  authors: [{ name: "ClawICU Team", url: "https://github.com/clawicu" }],
+  authors: [{ name: "ClawICU Team", url: "https://github.com/SonicBotMan/clawicu" }],
   creator: "ClawICU Team",
   openGraph: {
     type: "website",

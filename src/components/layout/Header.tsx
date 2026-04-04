@@ -8,7 +8,7 @@ const navLinks = [
   { label: "Rescue", href: "/rescue" },
   { label: "Docs", href: "/docs" },
   { label: "Download", href: "/download" },
-  { label: "GitHub", href: "https://github.com/clawicu", external: true },
+  { label: "GitHub", href: "https://github.com/SonicBotMan/clawicu", external: true },
 ];
 
 export function Header() {

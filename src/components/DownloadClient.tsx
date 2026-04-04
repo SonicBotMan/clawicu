@@ -24,6 +24,7 @@ const downloadData: Record<OS, {
   label: string;
   icon: typeof Apple;
   file: string;
+  url: string;
   checksum: string;
   size: string;
 }> = {
@@ -31,19 +32,21 @@ const downloadData: Record<OS, {
     id: "download-macos",
     label: "macOS",
     icon: Apple,
-    file: "clawicu-rescue-v1.0.0-macos.tar.gz",
+    file: "rescue.sh",
+    url: "https://xagent.icu/rescue.sh",
     checksum:
-      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    size: "12.4 MB",
+      "sha256:$(curl -sL https://xagent.icu/rescue.sh | shasum -a 256 | cut -d' ' -f1)",
+    size: "Source (~15KB)",
   },
   linux: {
     id: "download-linux",
     label: "Linux",
     icon: Monitor,
-    file: "clawicu-rescue-v1.0.0-linux.tar.gz",
+    file: "rescue.sh",
+    url: "https://xagent.icu/rescue.sh",
     checksum:
-      "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
-    size: "8.7 MB",
+      "sha256:$(curl -sL https://xagent.icu/rescue.sh | sha256sum | cut -d' ' -f1)",
+    size: "Source (~15KB)",
   },
 };
 
@@ -71,7 +74,7 @@ const installMethods = [
   {
     icon: FileCode2,
     name: "Source",
-    command: "git clone https://github.com/clawicu/rescue.git",
+    command: "git clone https://github.com/SonicBotMan/clawicu.git",
     description: "Build from source",
   },
 ];
@@ -211,7 +214,7 @@ export function DownloadClient() {
               </div>
 
               <a
-                href={`https://github.com/clawicu/rescue/releases/download/${VERSION}/${data.file}`}
+                href={`https://xagent.icu/rescue.sh`}
                 className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-all duration-200 hover:bg-primary/90 hover:shadow-[0_0_24px_rgba(255,77,77,0.3)] hover:-translate-y-0.5"
               >
                 <Download className="h-4 w-4" />
