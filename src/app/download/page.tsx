@@ -4,9 +4,12 @@ import { Footer } from "@/components/layout/Footer";
 import { DownloadClient } from "@/components/DownloadClient";
 
 export const metadata: Metadata = {
-  title: "Download — ClawICU",
+  title: "Download",
   description:
-    "Download ClawICU rescue toolkit for macOS and Linux. Install via curl, npm, Docker, Podman, or build from source.",
+    "Download the ClawICU rescue script. One command: curl -fsSL https://xagent.icu/rescue.sh | sh",
+  alternates: {
+    canonical: "/download/",
+  },
 };
 
 export default function DownloadPage() {

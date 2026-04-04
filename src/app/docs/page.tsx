@@ -53,8 +53,12 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 export const metadata: Metadata = {
-  title: "Docs — ClawICU",
-  description: "OpenClaw issue encyclopedia and diagnosis guides",
+  title: "Issue Encyclopedia",
+  description:
+    "24 OpenClaw issue guides covering pairing, channel auth, cron, heartbeat, and more. Diagnose and fix with step-by-step solutions.",
+  alternates: {
+    canonical: "/docs/",
+  },
 };
 
 export default function DocsPage() {

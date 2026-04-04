@@ -16,8 +16,8 @@ import {
 import { cn } from "@/lib/utils";
 import { useOSDetector, type OS } from "@/components/OSDetector";
 
-const VERSION = "v0.1.0";
-const RELEASE_DATE = "2026-04-03";
+const VERSION = "v0.2.0";
+const RELEASE_DATE = "2026-04-04";
 
 const downloadData: Record<OS, {
   id: string;

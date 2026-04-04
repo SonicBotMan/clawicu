@@ -90,23 +90,23 @@ export function Hero() {
           </a>
         </div>
 
-        <div 
-          className="animate-fade-up mt-16 inline-flex items-center gap-8 text-center" 
+        <div
+          className="animate-fade-up mt-16 inline-flex items-center gap-8 text-center"
           style={{ animationDelay: "0.5s" }}
         >
           <div className="flex flex-col items-center px-4">
-            <span className="font-heading text-3xl font-bold text-foreground sm:text-4xl">17</span>
-            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">Diagnostic Checks</span>
-          </div>
-          <div className="h-10 w-px bg-border/50" />
-          <div className="flex flex-col items-center px-4">
-            <span className="font-heading text-3xl font-bold text-foreground sm:text-4xl">12</span>
-            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">Repair Modules</span>
+            <span className="font-heading text-3xl font-bold text-foreground sm:text-4xl">24</span>
+            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">Issue Guides</span>
           </div>
           <div className="h-10 w-px bg-border/50" />
           <div className="flex flex-col items-center px-4">
             <span className="font-heading text-3xl font-bold text-foreground sm:text-4xl">6</span>
-            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">Treatment Phases</span>
+            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">Rescue Phases</span>
+          </div>
+          <div className="h-10 w-px bg-border/50" />
+          <div className="flex flex-col items-center px-4">
+            <span className="font-heading text-3xl font-bold text-foreground sm:text-4xl">1</span>
+            <span className="mt-1 text-xs text-muted-foreground sm:text-sm">Command Rescue</span>
           </div>
         </div>
 

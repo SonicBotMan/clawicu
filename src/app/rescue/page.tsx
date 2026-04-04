@@ -7,8 +7,12 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { GridBackground } from "@/components/effects";
 
 export const metadata: Metadata = {
-  title: "Rescue Guide — ClawICU",
-  description: "Step-by-step rescue process for OpenClaw emergencies",
+  title: "Rescue Protocol",
+  description:
+    "6-phase rescue protocol: doctor check, diagnostics, triage, treatment plan, execute, and report.",
+  alternates: {
+    canonical: "/rescue/",
+  },
 };
 
 export default function RescuePage() {

@@ -21,8 +21,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const issue = getIssueBySlug(slug);
   if (!issue) return { title: "Not Found" };
   return {
-    title: `${issue.title} — ClawICU Docs`,
+    title: issue.title,
     description: issue.description,
+    alternates: {
+      canonical: `/docs/${slug}/`,
+    },
+    openGraph: {
+      title: `${issue.title} | ClawICU`,
+      description: issue.description,
+      url: `https://xagent.icu/docs/${slug}/`,
+      type: "article",
+    },
   };
 }
 

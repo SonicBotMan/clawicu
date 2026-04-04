@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xagent.icu/sitemap.xml
+
+Crawl-delay: 1
