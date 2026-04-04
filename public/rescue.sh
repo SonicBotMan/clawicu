@@ -66,18 +66,20 @@ detect_install_method() {
 }
 
 bootstrap_init() {
-    local work_dir="/tmp/clawicu-$$"
-    mkdir -p "$work_dir"
-    trap "rm -rf $work_dir" EXIT INT TERM
-    echo "$work_dir"
+    CLAWICU_TMPDIR="/tmp/clawicu-$$"
+    mkdir -p "$CLAWICU_TMPDIR" || {
+        printf "   ${C_RED}[X] Cannot create temp directory: %s${C_NC}\n" "$CLAWICU_TMPDIR" >&2
+        return 1
+    }
+    trap "rm -rf $CLAWICU_TMPDIR 2>/dev/null" EXIT INT TERM
 }
 
 bootstrap() {
+    bootstrap_init
     CLAWICU_OS="$(detect_os)"
     CLAWICU_ARCH="$(detect_arch)"
     CLAWICU_SHELL="$(detect_shell)"
     CLAWICU_INSTALL_METHOD="$(detect_install_method)"
-    CLAWICU_TMPDIR="$(bootstrap_init)"
     export CLAWICU_OS CLAWICU_ARCH CLAWICU_SHELL CLAWICU_INSTALL_METHOD CLAWICU_TMPDIR
 }
 
@@ -476,6 +478,7 @@ phase_2_checks() {
     phase_indicator 2 6 "Running Diagnostic Checks"
 
     RESULTS_FILE="$CLAWICU_TMPDIR/check-results.txt"
+    mkdir -p "$CLAWICU_TMPDIR" 2>/dev/null || true
     > "$RESULTS_FILE"
 
     check_binary
