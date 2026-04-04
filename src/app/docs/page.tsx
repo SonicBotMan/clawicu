@@ -26,6 +26,7 @@ import {
   HeartOff,
   Globe,
   Terminal,
+  Shield,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -73,6 +74,39 @@ export default function DocsPage() {
             title="Diagnose & Fix"
             description="Comprehensive guides to diagnose and fix common OpenClaw problems"
           />
+
+          <div className="mb-8">
+            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground mb-4">
+              Featured
+            </h2>
+            <Link
+              href="/docs/tool-unlock-panel/"
+              className="group relative flex items-center gap-5 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 to-accent/10 p-6 backdrop-blur-[12px] transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_40px_rgba(255,77,77,0.2)]"
+            >
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/20 text-primary">
+                <Shield className="h-7 w-7" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-heading text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
+                  Tool Unlock Panel
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Interactive security config editor — unlock exec, browser, elevated, and sandbox tools without editing config files manually.
+                </p>
+              </div>
+              <div className="hidden text-muted-foreground transition-colors group-hover:text-primary sm:block">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </Link>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+              24 Issue Guides
+            </h2>
+          </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             {ISSUES.map((issue) => {
