@@ -107,37 +107,39 @@ C_BOLD='\033[1m'
 C_DIM='\033[2m'
 C_NC='\033[0m'
 
-ECG_CHARS="▁▂▃▄▅▆▇█▇▆▅▄▃▂▁"
-VITAL_HEART="♥"
-VITAL_PULSE="◉"
+ECG_CHARS="/-\\|/-\\|"
+VITAL_HEART="<3"
+VITAL_PULSE="[o]"
 
 clear_line() { printf "\r\033[K"; }
 
-hline() { printf '%*s\n' "$TERMINAL_WIDTH" '' | tr ' ' '─'; }
+hline() { printf '%*s\n' 80 '' | tr ' ' '-'; }
 
-icu_header() {
+    icu_header() {
     local version="${1:-0.1.0}"
     clear
-    cat << 'EOF'
-
-   ██╗    ██╗ █████╗ ███████╗███████╗██╗
-   ██║    ██║██╔══██╗██╔════╝██╔════╝██║
-   ██║ █╗ ██║███████║███████╗███████╗██║
-   ██║███╗██║██╔══██║╚════██║╚════██║██║
-   ╚███╔███╔╝██║  ██║███████║███████║███████╗
-    ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝
-
-   ██████╗ ███████╗██████╗ ██╗      █████╗ ███████╗██╗ ██████╗ ███╗
-   ██╔══██╗██╔════╝██╔══██╗██║     ██╔══██╗██╔════╝██║██╔═══██╗████╗
-   ██████╔╝█████╗  ██████╔╝██║     ███████║███████╗██║██║   ██║██╔██╗
-   ██╔══██╗██╔══╝  ██╔══██╗██║     ██╔══██║╚════██║██║██║   ██║██║╚██╗
-   ██║  ██║███████╗██████╔╝███████╗██║  ██║███████║██║╚██████╔╝██║ ╚██╗
-   ╚═╝  ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚██╗
-EOF
     printf "\n"
-    printf "   ${C_CYAN}◆${C_NC} OpenClaw Emergency Rescue System ${C_CYAN}◆${C_NC}\n"
-    printf "   ${C_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_NC}\n"
-    printf "   Version: ${C_BOLD}%s${C_NC} | ICU Mode: ${C_GREEN}● ACTIVE${C_NC}\n" "$version"
+    printf "   ****************************************************************\n"
+    printf "   *                                                              *\n"
+    printf "   *   ██╗    ██╗ █████╗ ███████╗███████╗██╗                     *\n"
+    printf "   *   ██║    ██║██╔══██╗██╔════╝██╔════╝██║                     *\n"
+    printf "   *   ██║ █╗ ██║███████║███████╗███████╗██║                     *\n"
+    printf "   *   ██║███╗██║██╔══██║╚════██║╚════██║██║                     *\n"
+    printf "   *   ╚███╔███╔╝██║  ██║███████║███████║███████╗                *\n"
+    printf "   *    ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝                *\n"
+    printf "   *                                                              *\n"
+    printf "   *   ██████╗ ███████╗██████╗ ██╗      █████╗ ███████╗██╗       *\n"
+    printf "   *   ██╔══██╗██╔════╝██╔══██╗██║     ██╔══██╗██╔════╝██║       *\n"
+    printf "   *   ██████╔╝█████╗  ██████╔╝██║     ███████║███████╗██║       *\n"
+    printf "   *   ██╔══██╗██╔══╝  ██╔══██╗██║     ██╔══██║╚════██║██║       *\n"
+    printf "   *   ██║  ██║███████╗██████╔╝███████╗██║  ██║███████║███████╗  *\n"
+    printf "   *   ╚═╝  ╚═╝╚══════╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝  *\n"
+    printf "   *                                                              *\n"
+    printf "   ****************************************************************\n"
+    printf "\n"
+    printf "   ${C_CYAN}*${C_NC} OpenClaw Emergency Rescue System ${C_CYAN}*${C_NC}\n"
+    printf "   ${C_DIM}%-80s${C_NC}\n" "-------------------------------------------------------------"
+    printf "   Version: ${C_BOLD}%s${C_NC} | ICU Mode: ${C_GREEN}[ON]${C_NC}\n" "$version"
     printf "\n"
 }
 
@@ -148,26 +150,26 @@ vital_monitor() {
     local temp="$4"
 
     printf "\n"
-    printf "   ┌─────────────────────────────────────────────────────────────────┐\n"
-    printf "   │${C_BOLD}  ICU VITAL SIGNS MONITOR${C_NC}                                      │\n"
-    printf "   ├─────────────────────────────────────────────────────────────────┤\n"
+    printf "   +---------------------------------------------------------------+\n"
+    printf "   |  ICU VITAL SIGNS MONITOR                                       |\n"
+    printf "   +---------------------------------------------------------------+\n"
 
     case "$status" in
         CRITICAL)
-            printf "   │ ${C_RED}● STATUS: CRITICAL${C_NC}                                           │\n"
+            printf "   | ${C_RED}[!] STATUS: CRITICAL${C_NC}                                         |\n"
             ;;
         WARNING)
-            printf "   │ ${C_YELLOW}● STATUS: WARNING${C_NC}                                            │\n"
+            printf "   | ${C_YELLOW}[!] STATUS: WARNING${C_NC}                                          |\n"
             ;;
         STABLE)
-            printf "   │ ${C_GREEN}● STATUS: STABLE${C_NC}                                             │\n"
+            printf "   | ${C_GREEN}[*] STATUS: STABLE${C_NC}                                           |\n"
             ;;
     esac
 
-    printf "   │                                                         │\n"
-    printf "   │  ${VITAL_HEART} Heart Rate: ${C_BOLD}%s BPM${C_NC}          ${VITAL_PULSE} SpO2: ${C_BOLD}%s%%${C_NC}          TEMP: ${C_BOLD}%s°C${C_NC}  │\n" "$heartbeat" "$spo2" "$temp"
-    printf "   │                                                         │\n"
-    printf "   └─────────────────────────────────────────────────────────────────┘\n"
+    printf "   |                                                           |\n"
+    printf "   |  %s Heart Rate: %s BPM          %s SpO2: %s%%          TEMP: %sC  |\n" "$VITAL_HEART" "$heartbeat" "$VITAL_PULSE" "$spo2" "$temp"
+    printf "   |                                                           |\n"
+    printf "   +---------------------------------------------------------------+\n"
 }
 
 heartbeat_line() {
@@ -194,10 +196,10 @@ icu_spinner() {
 
     while true; do
         case $spin in
-            0) printf "\r   ${C_CYAN}◐${C_NC} ${msg}..." ;;
-            1) printf "\r   ${C_CYAN}◑${C_NC} ${msg}..." ;;
-            2) printf "\r   ${C_CYAN}◒${C_NC} ${msg}..." ;;
-            3) printf "\r   ${C_CYAN}◓${C_NC} ${msg}..." ;;
+            0) printf "\r   ${C_CYAN}/${C_NC} ${msg}..." ;;
+            1) printf "\r   ${C_CYAN}-${C_NC} ${msg}..." ;;
+            2) printf "\r   ${C_CYAN}\\${C_NC} ${msg}..." ;;
+            3) printf "\r   ${C_CYAN}|${C_NC} ${msg}..." ;;
         esac
         spin=$(( (spin + 1) % 4 ))
         sleep "$delay"
@@ -225,7 +227,7 @@ progress_bar() {
     local empty=$((width - filled))
 
     local bar="" i
-    for i in $(seq 1 "$filled"); do bar="${bar}█"; done
+    for i in $(seq 1 "$filled"); do bar="${bar}#"; done
     for i in $(seq 1 "$empty"); do bar="${bar}░"; done
 
     printf "\r   [%s] %3d%% %s" "$bar" "$percent" "$msg"
@@ -237,10 +239,9 @@ phase_indicator() {
     local name="$3"
 
     printf "\n"
-    printf "   ${C_CYAN}◆${C_NC} ${C_BOLD}Phase %d/%d:${C_NC} ${C_BOLD}%s${C_NC}\n" "$phase" "$total" "$name"
-    printf "   ${C_DIM}"
-    printf '%*s' "$TERMINAL_WIDTH" '' | tr ' ' '─'
-    printf "${C_NC}\n"
+    printf "   ${C_CYAN}*${C_NC} ${C_BOLD}Phase %d/%d:${C_NC} ${C_BOLD}%s${C_NC}\n" "$phase" "$total" "$name"
+    printf "   ${C_DIM}%-80s${C_NC}\n" "--------------------------------------------------------------------"
+    printf "\n"
 }
 
 check_result() {
@@ -250,28 +251,28 @@ check_result() {
 
     case "$status" in
         OK)
-            printf "   ${C_GREEN}✓${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
-            [ -n "$message" ] && printf " — ${C_GREEN}%s${C_NC}" "$message"
+            printf "   ${C_GREEN}[OK]${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
+            [ -n "$message" ] && printf " -- ${C_GREEN}%s${C_NC}" "$message"
             printf "\n"
             ;;
         FAIL|CRITICAL|FATAL)
-            printf "   ${C_RED}✗${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
-            [ -n "$message" ] && printf " — ${C_RED}%s${C_NC}" "$message"
+            printf "   ${C_RED}[X]${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
+            [ -n "$message" ] && printf " -- ${C_RED}%s${C_NC}" "$message"
             printf "\n"
             ;;
         WARN|WARNING)
-            printf "   ${C_YELLOW}⚠${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
-            [ -n "$message" ] && printf " — ${C_YELLOW}%s${C_NC}" "$message"
+            printf "   ${C_YELLOW}[!]${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
+            [ -n "$message" ] && printf " -- ${C_YELLOW}%s${C_NC}" "$message"
             printf "\n"
             ;;
         INFO)
-            printf "   ${C_CYAN}ℹ${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
-            [ -n "$message" ] && printf " — ${C_CYAN}%s${C_NC}" "$message"
+            printf "   ${C_CYAN}[i]${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
+            [ -n "$message" ] && printf " -- ${C_CYAN}%s${C_NC}" "$message"
             printf "\n"
             ;;
         PROCESSING|RUNNING)
-            printf "   ${C_CYAN}◐${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
-            [ -n "$message" ] && printf " — ${C_CYAN}%s${C_NC}" "$message"
+            printf "   ${C_CYAN}[.]${C_NC} ${C_BOLD}%s${C_NC}" "$check_name"
+            [ -n "$message" ] && printf " -- ${C_CYAN}%s${C_NC}" "$message"
             printf "\r"
             ;;
     esac
@@ -284,24 +285,24 @@ rescue_announce() {
     printf "\n"
     case "$type" in
         START)
-            printf "   ${C_MAGENTA}┌───────────────────────────────────────┐${C_NC}\n"
-            printf "   ${C_MAGENTA}│${C_NC}  ${C_BOLD}${C_MAGENTA}🚨 INITIATING EMERGENCY RESCUE 🚨${C_NC}  ${C_MAGENTA}│${C_NC}\n"
-            printf "   ${C_MAGENTA}└───────────────────────────────────────┘${C_NC}\n"
+            printf "   ${C_MAGENTA}+--------------------------------------+/${C_NC}\n"
+            printf "   ${C_MAGENTA}|${C_NC}  ${C_BOLD}${C_MAGENTA}[!!] INITIATING EMERGENCY RESCUE [!!]${C_NC}  ${C_MAGENTA}|${C_NC}\n"
+            printf "   ${C_MAGENTA}+--------------------------------------+/${C_NC}\n"
             ;;
         ING)
-            printf "   ${C_YELLOW}┌───────────────────────────────────────┐${C_NC}\n"
-            printf "   ${C_YELLOW}│${C_NC}  ${C_BOLD}${C_YELLOW}🚑 ICU RESCUING — STANDBY 🚑${C_NC}    ${C_YELLOW}│${C_NC}\n"
-            printf "   ${C_YELLOW}└───────────────────────────────────────┘${C_NC}\n"
+            printf "   ${C_YELLOW}+--------------------------------------+/${C_NC}\n"
+            printf "   ${C_YELLOW}|${C_NC}  ${C_BOLD}${C_YELLOW}[>>] ICU RESCUING -- STANDBY [>>]${C_NC}    ${C_YELLOW}|${C_NC}\n"
+            printf "   ${C_YELLOW}+--------------------------------------+/${C_NC}\n"
             ;;
         COMPLETE)
-            printf "   ${C_GREEN}┌───────────────────────────────────────┐${C_NC}\n"
-            printf "   ${C_GREEN}│${C_NC}  ${C_BOLD}${C_GREEN}✅ RESCUE COMPLETE — PATIENT STABLE ✅${C_NC}  ${C_GREEN}│${C_NC}\n"
-            printf "   ${C_GREEN}└───────────────────────────────────────┘${C_NC}\n"
+            printf "   ${C_GREEN}+--------------------------------------+/${C_NC}\n"
+            printf "   ${C_GREEN}|${C_NC}  ${C_BOLD}${C_GREEN}[OK] RESCUE COMPLETE -- PATIENT STABLE [OK]${C_NC}  ${C_GREEN}|${C_NC}\n"
+            printf "   ${C_GREEN}+--------------------------------------+/${C_NC}\n"
             ;;
         FAILED)
-            printf "   ${C_RED}┌───────────────────────────────────────┐${C_NC}\n"
-            printf "   ${C_RED}│${C_NC}  ${C_BOLD}${C_RED}❌ RESCUE FAILED — CRITICAL ❌${C_NC}    ${C_RED}│${C_NC}\n"
-            printf "   ${C_RED}└───────────────────────────────────────┘${C_NC}\n"
+            printf "   ${C_RED}+--------------------------------------+/${C_NC}\n"
+            printf "   ${C_RED}|${C_NC}  ${C_BOLD}${C_RED}[X] RESCUE FAILED -- CRITICAL [X]${C_NC}    ${C_RED}|${C_NC}\n"
+            printf "   ${C_RED}+--------------------------------------+/${C_NC}\n"
             ;;
     esac
     printf "\n"
@@ -435,19 +436,19 @@ check_plugins() {
 phase_0_bootstrap() {
     icu_header "$SCRIPT_VERSION"
 
-    printf "   ${C_CYAN}◆${C_NC} System: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Arch: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Shell: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_OS" "$CLAWICU_ARCH" "$CLAWICU_SHELL"
-    printf "   ${C_CYAN}◆${C_NC} Install: ${C_BOLD}%s${C_NC} | ${C_CYAN}◆${C_NC} Version: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_INSTALL_METHOD" "$SCRIPT_VERSION"
+    printf "   ${C_CYAN}*${C_NC} System: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Arch: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Shell: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_OS" "$CLAWICU_ARCH" "$CLAWICU_SHELL"
+    printf "   ${C_CYAN}*${C_NC} Install: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Version: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_INSTALL_METHOD" "$SCRIPT_VERSION"
     printf "\n"
-    printf "   ${C_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_NC}\n"
+    printf "   ${C_DIM}%-80s${C_NC}\n" "-------------------------------------------------------------"
 
     rescue_announce START "Initializing rescue protocol..."
 
     if ! command -v curl >/dev/null 2>&1; then
-        printf "\n   ${C_RED}✗ FATAL: curl is required but not found${C_NC}\n"
+        printf "\n   ${C_RED}[X] FATAL: curl is required but not found${C_NC}\n"
         exit 1
     fi
 
-    printf "   ${C_GREEN}✓${C_NC} curl .............. ${C_GREEN}READY${C_NC}\n"
+    printf "   ${C_GREEN}[OK]${C_NC} curl .............. ${C_GREEN}READY${C_NC}\n"
 }
 
 phase_1_doctor() {
@@ -494,16 +495,16 @@ phase_2_checks() {
     check_plugins
 
     printf "\n"
-    printf "   ${C_DIM}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${C_NC}\n"
+    printf "   ${C_DIM}%-80s${C_NC}\n" "-------------------------------------------------------------"
 
     if [ "$CHECKS_FAILED" -gt 0 ]; then
-        printf "   ${C_RED}✗ Issues Found: ${C_BOLD}%s CRITICAL${C_NC}" "$CHECKS_FAILED"
-        [ "$CHECKS_WARN" -gt 0 ] && printf " | ${C_YELLOW}⚠ %s WARNINGS${C_NC}" "$CHECKS_WARN"
+        printf "   ${C_RED}[X] Issues Found: ${C_BOLD}%s CRITICAL${C_NC}" "$CHECKS_FAILED"
+        [ "$CHECKS_WARN" -gt 0 ] && printf " | ${C_YELLOW}[!] %s WARNINGS${C_NC}" "$CHECKS_WARN"
         printf "\n"
     elif [ "$CHECKS_WARN" -gt 0 ]; then
-        printf "   ${C_YELLOW}⚠ Warnings: %s${C_NC}\n" "$CHECKS_WARN"
+        printf "   ${C_YELLOW}[!] Warnings: %s${C_NC}\n" "$CHECKS_WARN"
     else
-        printf "   ${C_GREEN}✓ All Checks Passed${C_NC}\n"
+        printf "   ${C_GREEN}[OK] All Checks Passed${C_NC}\n"
     fi
 }
 
@@ -512,14 +513,14 @@ phase_3_triage() {
 
     if [ "$CHECKS_FAILED" -gt 0 ]; then
         vital_monitor "CRITICAL" "---" "---" "---"
-        printf "\n   ${C_RED}● PATIENT IN CRITICAL CONDITION${C_NC}\n"
-        printf "   ${C_RED}● IMMEDIATE RESCUE REQUIRED${C_NC}\n"
+        printf "\n   ${C_RED}[*] PATIENT IN CRITICAL CONDITION${C_NC}\n"
+        printf "   ${C_RED}[*] IMMEDIATE RESCUE REQUIRED${C_NC}\n"
     elif [ "$CHECKS_WARN" -gt 0 ]; then
         vital_monitor "WARNING" "---" "---" "---"
-        printf "\n   ${C_YELLOW}● PATIENT REQUIRES ATTENTION${C_NC}\n"
+        printf "\n   ${C_YELLOW}[*] PATIENT REQUIRES ATTENTION${C_NC}\n"
     else
         vital_monitor "STABLE" "72" "98" "36.6"
-        printf "\n   ${C_GREEN}● PATIENT STABLE - NO IMMEDIATE ACTION REQUIRED${C_NC}\n"
+        printf "\n   ${C_GREEN}[*] PATIENT STABLE - NO IMMEDIATE ACTION REQUIRED${C_NC}\n"
     fi
 }
 
@@ -536,12 +537,12 @@ phase_4_menu() {
     printf "\n"
     printf "   ${C_BOLD}Available Treatment Plans:${C_NC}\n"
     printf "\n"
-    printf "   ${C_GREEN}[a]${C_NC} Auto-Treatment — Let ICU handle everything\n"
-    printf "   ${C_CYAN}[1]${C_NC} Quick Fix — Safe, low-risk repairs only\n"
-    printf "   ${C_YELLOW}[2]${C_NC} Full Treatment — Include all repairs\n"
-    printf "   ${C_RED}[3]${C_NC} Nuclear Option — Full state reset\n"
-    printf "   ${C_DIM}[s]${C_NC} Export Report — Save diagnostic data\n"
-    printf "   ${C_DIM}[q]${C_NC} Quit — Exit without changes\n"
+    printf "   ${C_GREEN}[a]${C_NC} Auto-Treatment -- Let ICU handle everything\n"
+    printf "   ${C_CYAN}[1]${C_NC} Quick Fix -- Safe, low-risk repairs only\n"
+    printf "   ${C_YELLOW}[2]${C_NC} Full Treatment -- Include all repairs\n"
+    printf "   ${C_RED}[3]${C_NC} Nuclear Option -- Full state reset\n"
+    printf "   ${C_DIM}[s]${C_NC} Export Report -- Save diagnostic data\n"
+    printf "   ${C_DIM}[q]${C_NC} Quit -- Exit without changes\n"
 
     printf "\n"
     printf "   ${C_BOLD}Select option [a]:${C_NC} "
@@ -553,20 +554,20 @@ phase_4_menu() {
     case "$choice" in
         a|A)
             rescue_announce ING "Running auto-treatment protocol..."
-            printf "\n   ${C_CYAN}◐${C_NC} Executing treatment modules...\n"
+            printf "\n   ${C_CYAN}[.]${C_NC} Executing treatment modules...\n"
             sleep 1
             rescue_announce COMPLETE "Auto-treatment complete"
             ;;
         1)
-            printf "   ${C_CYAN}◐${C_NC} Running quick fixes...\n"
+            printf "   ${C_CYAN}[.]${C_NC} Running quick fixes...\n"
             sleep 1
             ;;
         2)
-            printf "   ${C_YELLOW}◐${C_NC} Running full treatment...\n"
+            printf "   ${C_YELLOW}[.]${C_NC} Running full treatment...\n"
             sleep 1
             ;;
         3)
-            printf "   ${C_RED}◐${C_NC} Nuclear option selected...\n"
+            printf "   ${C_RED}[.]${C_NC} Nuclear option selected...\n"
             sleep 1
             ;;
         s|S)
@@ -579,21 +580,21 @@ phase_4_menu() {
                 echo "System: $CLAWICU_OS $CLAWICU_ARCH"
                 cat "$RESULTS_FILE"
             } > "$report"
-            printf "   ${C_GREEN}✓${C_NC} Report saved: %s\n" "$report"
+            printf "   ${C_GREEN}[OK]${C_NC} Report saved: %s\n" "$report"
             ;;
         q|Q)
             printf "   ${C_DIM}Exiting without changes...${C_NC}\n"
             exit 0
             ;;
         *)
-            printf "   ${C_YELLOW}⚠${C_NC} Invalid option, using auto-treatment...\n"
+            printf "   ${C_YELLOW}[!]${C_NC} Invalid option, using auto-treatment...\n"
             ;;
     esac
 }
 
 phase_5_execute() {
     phase_indicator 5 6 "Executing Repairs"
-    printf "\n   ${C_CYAN}◐${C_NC} Repair module execution...\n"
+    printf "\n   ${C_CYAN}[.]${C_NC} Repair module execution...\n"
     sleep 1
 }
 
@@ -617,7 +618,7 @@ phase_6_report() {
 
     printf "\n"
     rescue_announce COMPLETE "Rescue operation finished"
-    printf "   ${C_GREEN}✓${C_NC} Report: ${C_BOLD}%s${C_NC}\n" "$report"
+    printf "   ${C_GREEN}[OK]${C_NC} Report: ${C_BOLD}%s${C_NC}\n" "$report"
 }
 
 main() {
