@@ -1,111 +1,133 @@
-# ClawICU — OpenClaw Emergency Rescue System
+# ClawICU
+
+### OpenClaw Emergency Rescue System
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.2.0-blue.svg" alt="Version">
-  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
-  <img src="https://img.shields.io/badge/OpenClaw-v2026.4-blueviolet.svg" alt="OpenClaw">
+
+![Version](https://img.shields.io/badge/version-0.2.0-2564eb?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)
+![OpenClaw](https://img.shields.io/badge/OpenClaw-v2026.4-8b5cf6?style=for-the-badge)
+![Issues](https://img.shields.io/badge/Issues-24-ef4444?style=for-the-badge)
+![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS-64748b?style=for-the-badge)
+
 </p>
 
 <p align="center">
-  <strong>English</strong> · <a href="#中文">中文</a>
+
+**[Website](https://xagent.icu)** ·
+**[Docs](https://xagent.icu/docs)** ·
+**[Rescue Script](https://xagent.icu/rescue.sh)** ·
+**[GitHub](https://github.com/SonicBotMan/clawicu)**
+
 </p>
 
 ---
 
-## What is ClawICU?
+<p align="center">
 
-ClawICU is a rescue system for [OpenClaw](https://github.com/openclaw/openclaw) — an AI-powered local-first assistant gateway. When OpenClaw has issues (pairing failures, cron not running, channel auth errors), ClawICU helps diagnose and fix them.
-
-**One command to start:**
-
-```bash
-curl -fsSL https://xagent.icu/rescue.sh | sh
+```
+██╗    ██╗ █████╗ ███████╗███████╗██╗     ██╗███╗   ██╗███████╗
+██║    ██║██╔══██╗██╔════╝██╔════╝██║     ██║████╗  ██║██╔════╝
+██║ █╗ ██║███████║███████╗███████╗██║     ██║██╔██╗ ██║█████╗
+██║███╗██║██╔══██║╚════██║╚════██║██║     ██║██║╚██╗██║██╔══╝
+╚███╔███╔╝██║  ██║███████║███████║███████╗██║██║ ╚████║███████╗
+ ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝╚═╝  ╚═══╝╚══════╝
 ```
 
-Or download and run manually:
+**When OpenClaw breaks, ClawICU rushes in.**
 
-```bash
-curl -fsSL https://xagent.icu/rescue.sh -o rescue.sh
-chmod +x rescue.sh
-./rescue.sh
-```
+</p>
 
 ---
 
-## What It Does
+## What
 
-### 6-Phase Rescue Flow
+ClawICU is a **rescue system for [OpenClaw](https://github.com/openclaw/openclaw)** — the local-first AI assistant gateway.
+
+OpenClaw manages AI agents, plugins, channels, and system commands. When it fails — pairing errors, cron not running, channel auth issues — ClawICU diagnoses and fixes it.
+
+| | |
+|---|---|
+| **One command** | `curl -fsSL https://xagent.icu/rescue.sh \| sh` |
+| **Or download** | `curl -fsSL https://xagent.icu/rescue.sh -o rescue.sh && chmod +x rescue.sh` |
+| **Documentation** | [xagent.icu/docs](https://xagent.icu/docs) — 24 issue guides |
+| **Live site** | [xagent.icu](https://xagent.icu) |
+
+---
+
+## How
+
+### 6-Phase Rescue Protocol
 
 ```
-Phase 1: Doctor Check    → openclaw doctor + openclaw doctor --fix
-Phase 2: Diagnostics     → System checks (binary, process, config, disk, network)
-Phase 3: Triage          → Assess severity (Critical / Warning / Stable)
-Phase 4: Treatment Plan  → Select repair strategy (Auto / Quick / Full / Nuclear)
-Phase 5: Execute         → Apply repairs via openclaw doctor --fix
-Phase 6: Report          → Summary + restart instructions
+┌─────────────────────────────────────────────────────────────────┐
+│  Phase 1 · Doctor Check                                          │
+│  openclaw doctor + openclaw doctor --fix (auto-applied)          │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 2 · Diagnostics                                            │
+│  Binary · Process · Config · Disk · Network · State            │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 3 · Triage                                                 │
+│  Critical ████ or Warning ████ or Stable ████                  │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 4 · Treatment Plan                                         │
+│  [a] Auto · [1] Quick · [2] Full · [3] Nuclear                 │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 5 · Execute                                                │
+│  Apply openclaw doctor --fix repairs                            │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 6 · Report                                                │
+│  Summary + restart instructions                                  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### What openclaw doctor --fix Handles
+### What `openclaw doctor --fix` Does
 
-Configuration migrations and repairs from OpenClaw's built-in diagnostic tool:
+| Category | Fixes |
+|----------|-------|
+| **Legacy Migration** | Sessions, agent, WhatsApp auth state |
+| **Config Paths** | xAI / Firecrawl config migration |
+| **Channel Config** | Compatibility fixes across platforms |
+| **Plugins** | Auto-enable + dependency resolution |
+| **Gateway** | Auth token generation |
+| **Shell** | Bash / Zsh / Fish completion setup |
+| **System** | systemd linger, cron store repair |
 
-- Legacy state migration (sessions, agent, WhatsApp auth)
-- xAI / Firecrawl config path migration
-- Channel configuration compatibility fixes
-- Plugin auto-enable and dependency resolution
-- Gateway auth token generation
-- Shell completion setup
-- systemd linger configuration
-- Legacy cron store repair
+---
 
-### What the Website Covers
+## 24 Documented Issues
 
-The [xagent.icu](https://xagent.icu) static site documents **24 common OpenClaw issues** with diagnosis steps and repair guides:
+The [issue encyclopedia](https://xagent.icu/docs) covers real OpenClaw problems with diagnosis steps and solutions.
 
-| Category | Issues |
+| Severity | Issues |
 |----------|--------|
-| Config | Config file corruption, missing config |
-| Connectivity | Network offline, gateway unreachable, dashboard cannot connect |
-| Pairing | Pairing not approved, mention required in group |
-| Channels | Channel authentication failed, Telegram/Discord/WhatsApp issues |
-| Scheduling | Cron job not executing, heartbeat not sent |
-| Execution | Browser tool not working, exec command requires approval |
-| System | Disk full, memory high, port conflict |
-| Security | DM policy misconfiguration, allowlist issues |
+| 🔴 Fatal | Config corruption · Gateway crash · Disk full |
+| 🟠 Warning | Pairing not approved · Channel auth failed · Cron not executing |
+| 🟡 Info | Browser tool not working · Exec requires approval · Heartbeat not sent |
 
 ---
 
-## Quick Start
-
-```bash
-# Run the rescue script
-curl -fsSL https://xagent.icu/rescue.sh | sh
-
-# Or visit the issue encyclopedia
-open https://xagent.icu/docs
-```
-
----
-
-## Project Structure
+## Architecture
 
 ```
 clawicu/
-├── rescue.sh              # Standalone rescue script (bundled, no dependencies)
-├── src/
-│   ├── app/
-│   │   ├── page.tsx       # Landing page (ICU theme)
-│   │   └── docs/
-│   │       ├── page.tsx   # 24-issue encyclopedia grid
-│   │       └── [slug]/    # Individual issue detail pages
-│   └── components/
-│       ├── Hero.tsx           # ICU Specialist hero
-│       ├── PatientSymptoms.tsx # Common issues grid with severity badges
-│       ├── TrustSection.tsx   # GitHub stars, MIT license
-│       ├── ExaminationProcess.tsx # 4-phase examination flow
-│       ├── TreatmentPlan.tsx   # 6-phase rescue protocol
-│       └── QuickStartGuides.tsx # Links to OpenClaw official docs
-└── public/                 # Static export deployed to xagent.icu
+│
+├── rescue.sh                    # Standalone POSIX shell script
+│                                 # No dependencies — curl + sh only
+│
+└── src/
+    ├── app/
+    │   ├── page.tsx             # Landing page
+    │   └── docs/
+    │       ├── page.tsx         # 24-issue grid
+    │       └── [slug]/          # Issue detail pages
+    │
+    └── components/
+        ├── Hero.tsx             # ICU Specialist banner
+        ├── PatientSymptoms.tsx   # Issue grid with severity badges
+        ├── TreatmentPlan.tsx     # 6-phase accordion
+        ├── ExaminationProcess.tsx # 4-step flow
+        └── QuickStartGuides.tsx  # Links to OpenClaw docs
 ```
 
 ---
@@ -113,27 +135,27 @@ clawicu/
 ## Development
 
 ```bash
+git clone https://github.com/SonicBotMan/clawicu.git
+cd clawicu
 npm install
-npm run dev      # Start dev server at localhost:3000
-npm run build    # Static export to /out
+npm run dev      # → localhost:3000
+npm run build    # Static export → /out
 ```
 
 ---
 
 ## Contributing
 
-Found an issue not covered? Submit it at [github.com/SonicBotMan/clawicu/issues](https://github.com/SonicBotMan/clawicu/issues).
-
----
-
-## License
-
-MIT License
+Found an unlisted issue? **[Open an issue](https://github.com/SonicBotMan/clawicu/issues)** — contributions welcome.
 
 ---
 
 <p align="center">
-  <strong>ClawICU — When OpenClaw has issues, we diagnose it in the ICU.</strong>
+
+MIT License · [github.com/SonicBotMan/clawicu](https://github.com/SonicBotMan/clawicu)
+
+**ClawICU — OpenClaw's emergency room.**
+
 </p>
 
 ---
@@ -141,34 +163,38 @@ MIT License
 # 中文版
 
 <p align="center">
-  <strong>English</strong> · <a href="#clawicu--openclaw-emergency-rescue-system">中文</a>
-</p>
 
----
-
-## 什么是 ClawICU？
-
-ClawICU 是 [OpenClaw](https://github.com/openclaw/openclaw) 的急救系统 —— 一个本地优先的 AI 助手网关。当 OpenClaw 出现故障（配对失败、通道认证错误、cron 不执行）时，ClawICU 帮助诊断和修复。
-
-**一行命令启动：**
-
-```bash
-curl -fsSL https://xagent.icu/rescue.sh | sh
 ```
+██╗    ██╗ █████╗ ███████╗███████╗██╗     ██╗███╗   ██╗███████╗
+██║    ██║██╔══██╗██╔════╝██╔════╝██║     ██║████╗  ██║██╔════╝
+██║ █╗ ██║███████║███████╗███████╗██║     ██║██╔██╗ ██║█████╗
+██║███╗██║██╔══██║╚════██║╚════██║██║     ██║██║╚██╗██║██╔══╝
+╚███╔███╔╝██║  ██║███████║███████║███████╗██║██║ ╚████║███████╗
+ ╚══╝╚══╝ ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝╚═╝  ╚═══╝╚══════╝
+```
+
+**当 OpenClaw 遇到问题时，ClawICU 紧急救援。**
+
+</p>
 
 ---
 
 ## 核心功能
 
+| 一键启动 | `curl -fsSL https://xagent.icu/rescue.sh \| sh` |
+|---|---|
+| 文档站点 | [xagent.icu/docs](https://xagent.icu/docs) — 24 个故障排查指南 |
+| 在线访问 | [xagent.icu](https://xagent.icu) |
+
 ### 6 阶段救援流程
 
 ```
-阶段 1: 医生检查   → openclaw doctor + openclaw doctor --fix
-阶段 2: 诊断检查   → 系统检查（二进制、进程、配置、磁盘、网络）
-阶段 3: 分诊评估   → 判断严重程度（危险 / 警告 / 稳定）
-阶段 4: 治疗方案   → 选择修复策略（自动 / 快速 / 完整 / 重置）
-阶段 5: 执行修复   → 通过 openclaw doctor --fix 应用修复
-阶段 6: 出院报告   → 变更摘要 + 重启指导
+阶段 1 · 医生检查   →  openclaw doctor + openclaw doctor --fix
+阶段 2 · 诊断检查   →  二进制 · 进程 · 配置 · 磁盘 · 网络
+阶段 3 · 分诊评估   →  危险 / 警告 / 稳定
+阶段 4 · 治疗方案   →  自动 / 快速 / 完整 / 重置
+阶段 5 · 执行修复   →  应用 openclaw doctor --fix
+阶段 6 · 出院报告   →  变更摘要 + 重启指导
 ```
 
 ### openclaw doctor --fix 自动处理
@@ -182,32 +208,35 @@ curl -fsSL https://xagent.icu/rescue.sh | sh
 - systemd linger 配置
 - Legacy cron store 修复
 
-### 网站文档
+---
 
-[xagent.icu](https://xagent.icu) 静态站点记录了 **24 种常见 OpenClaw 问题**，包含诊断步骤和修复指南。
+## 24 个已文档化的问题
+
+[xagent.icu/docs](https://xagent.icu/docs) 记录了真实 OpenClaw 故障的诊断步骤和解决方案。
 
 ---
 
-## 快速开始
+## 开发
 
 ```bash
-curl -fsSL https://xagent.icu/rescue.sh | sh
+git clone https://github.com/SonicBotMan/clawicu.git
+cd clawicu
+npm install
+npm run dev
 ```
 
 ---
 
 ## 参与贡献
 
-发现问题？请前往 [github.com/SonicBotMan/clawicu/issues](https://github.com/SonicBotMan/clawicu/issues) 提交。
-
----
-
-## 许可证
-
-MIT License
+发现问题？**[提交 Issue](https://github.com/SonicBotMan/clawicu/issues)** — 欢迎贡献。
 
 ---
 
 <p align="center">
-  <strong>ClawICU — 当 OpenClaw 遇到问题时，我们是它的急救室。</strong>
+
+MIT License · [github.com/SonicBotMan/clawicu](https://github.com/SonicBotMan/clawicu)
+
+**ClawICU — OpenClaw 的急救室。**
+
 </p>
