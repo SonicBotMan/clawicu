@@ -419,7 +419,7 @@ check_plugins() {
     local plugin_dir="${OPENCLAW_PLUGIN_DIR:-$HOME/.openclaw/plugins}"
     if [ ! -d "$plugin_dir" ]; then
         check_result OK "Plugins" "no plugins directory (normal for fresh install)"
-        return 1
+        return 0
     fi
     local plugin_count=$(find "$plugin_dir" -name "*.js" 2>/dev/null | wc -l | tr -d ' ')
     if [ "$plugin_count" -gt 0 ]; then
@@ -427,7 +427,7 @@ check_plugins() {
     else
         check_result INFO "Plugins" "directory exists but no plugins"
     fi
-    return 1
+    return 0
 }
 
 # ============================================================================
@@ -466,11 +466,11 @@ phase_1_doctor() {
     local doctor_output
     if doctor_output="$(openclaw doctor 2>&1)"; then
         check_result OK "OpenClaw Doctor" "all checks passed"
-        return 1
+        return 0
     else
         check_result WARN "OpenClaw Doctor" "reported issues"
         printf "\n   ${C_DIM}%s${C_NC}\n" "$doctor_output"
-        return 0
+        return 1
     fi
 }
 
@@ -481,21 +481,21 @@ phase_2_checks() {
     mkdir -p "$CLAWICU_TMPDIR" 2>/dev/null || true
     > "$RESULTS_FILE"
 
-    check_binary
+    check_binary || true
     sleep 0.2
-    check_process
+    check_process || true
     sleep 0.2
-    check_config
+    check_config || true
     sleep 0.2
-    check_disk
+    check_disk || true
     sleep 0.2
-    check_node
+    check_node || true
     sleep 0.2
-    check_network
+    check_network || true
     sleep 0.2
-    check_state_dir
+    check_state_dir || true
     sleep 0.2
-    check_plugins
+    check_plugins || true
 
     printf "\n"
     printf "   ${C_DIM}%-80s${C_NC}\n" "-------------------------------------------------------------"
