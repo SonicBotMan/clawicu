@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build:share-card": "bash scripts/capture-sos-card.sh",
+    "build:readme-screenshots": "bash scripts/capture-readme-screenshots.sh",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

@@ -52,6 +52,35 @@ curl -fsSL https://xagent.icu/r -o rescue.sh && chmod +x rescue.sh && ./rescue.s
 
 ---
 
+## Look & feel
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**[xagent.icu](https://xagent.icu) — homepage**
+
+<img src="docs/readme/website-home.png" alt="ClawICU homepage: hero, ICU terminal command, stats, medical-themed dark UI" width="100%" />
+
+</td>
+<td width="50%" valign="top">
+
+**[Documentation hub](https://xagent.icu/docs)**
+
+<img src="docs/readme/website-docs.png" alt="ClawICU docs index: issue cards and navigation" width="100%" />
+
+</td>
+</tr>
+</table>
+
+**Rescue script (illustrative terminal)** — phases, vital-signs summary, and interactive menu as you’d see in a real run:
+
+<img src="docs/readme/terminal-rescue.png" alt="Illustrative ClawICU terminal: Phase 1-2-4 output, warnings, Select option prompt, ICU terminal chrome" width="920" />
+
+<sub>Screenshots are generated from the static export + a styled terminal mock; regenerate with <code>npm run build && npm run build:readme-screenshots</code>.</sub>
+
+---
+
 ## What you get (at a glance)
 
 | | |
@@ -117,6 +146,9 @@ npm run build            # → out/
 
 # Regenerate Twitter/OG PNG after editing public/sos-card.svg (needs Chrome/Chromium)
 npm run build:share-card
+
+# Regenerate README screenshots (needs Chrome; serves out/ on localhost briefly)
+npm run build && npm run build:readme-screenshots
 ```
 
 ---
@@ -170,6 +202,18 @@ curl -fsSL https://xagent.icu/r | sh
 ```
 
 也可使用 `https://xagent.icu/rescue.sh`（与 `/r` 同源）。脚本为 **POSIX sh**，会从 **`/dev/tty`** 读菜单，管道执行不会「秒选默认项」。
+
+### 界面预览
+
+| 官网首页 | 文档中心 |
+|:---:|:---:|
+| [![官网](docs/readme/website-home.png)](https://xagent.icu) | [![文档](docs/readme/website-docs.png)](https://xagent.icu/docs) |
+
+**终端救援示意**（风格与真实输出一致，便于 README 展示）：
+
+<img src="docs/readme/terminal-rescue.png" alt="ClawICU 终端救援示意" width="920" />
+
+<sub>截图由 <code>npm run build && npm run build:readme-screenshots</code> 生成（需本机 Chrome）。</sub>
 
 ---
 

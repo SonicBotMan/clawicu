@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=960" />
+  <title>ClawICU terminal mock — README asset</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #050810;
+    }
+    body {
+      padding: 28px 32px 40px;
+      font-family: ui-monospace, "SF Mono", "Fira Code", Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .window {
+      max-width: 880px;
+      background: #020a06;
+      border: 1px solid rgba(255, 77, 77, 0.35);
+      border-radius: 14px;
+      box-shadow:
+        0 0 0 1px rgba(0, 232, 122, 0.06),
+        0 24px 80px rgba(0, 0, 0, 0.55),
+        0 0 60px rgba(255, 77, 77, 0.06);
+      overflow: hidden;
+    }
+    .titlebar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 11px 16px;
+      border-bottom: 1px solid rgba(0, 232, 122, 0.14);
+      background: linear-gradient(180deg, rgba(0, 232, 122, 0.06) 0%, transparent 100%);
+    }
+    .dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .titlebar span.label {
+      margin-left: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      color: rgba(0, 232, 122, 0.5);
+    }
+    .content {
+      padding: 20px 22px 26px;
+      color: #8892b0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .phase { color: #ff4d4d; font-weight: 700; }
+    .ok { color: #00e87a; }
+    .warn { color: #ffb020; }
+    .cyan { color: #00e5cc; }
+    .title { color: #f0f4ff; font-weight: 700; }
+    .dim { color: #5a6480; }
+    .cmd { color: #c8ffd4; }
+    .cursor { color: #00e87a; animation: blink 1s step-end infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+  </style>
+</head>
+<body>
+  <div class="window">
+    <div class="titlebar">
+      <span class="dot" style="background:#ff5f57"></span>
+      <span class="dot" style="background:#febc2e"></span>
+      <span class="dot" style="background:#28c840"></span>
+      <span class="label">ICU TERMINAL</span>
+    </div>
+    <div class="content"><span class="phase">*</span> Phase 1/6: OpenClaw Doctor Check
+<span class="ok">[OK]</span> Doctor finished (30s timeout guard — hung plugins terminated)
+
+<span class="phase">*</span> Phase 2/6: Standalone Diagnostics
+   Running <span class="title">20</span> check modules<span class="dim">...</span>
+
+   <span class="title">ICU VITAL SIGNS MONITOR</span>   <span class="warn">STATUS: WARNING</span>
+
+   <span class="dim">Issue Analysis:</span>
+   <span class="warn">[[!]] WARN</span>: plugins.allow is empty (security risk)
+   <span class="warn">[[!]] WARN</span>: Version mismatch (CLI vs Gateway)
+
+<span class="phase">*</span> Phase 4/6: Select Treatment Plan
+   <span class="dim">[a]</span> Auto-Treatment   <span class="dim">[q]</span> Quit
+
+<span class="cmd">Select option [a]:</span><span class="cursor">_</span>
+
+<span class="dim">$ curl -fsSL https://xagent.icu/r | sh</span></div>
+  </div>
+</body>
+</html>
