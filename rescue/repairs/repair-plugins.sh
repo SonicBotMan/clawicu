@@ -122,6 +122,70 @@ JSEOF
         return 1
     }
 
+    # Fix "plugins.allow is empty" by explicitly listing all discovered plugins.
+    # This makes future plugin loading deterministic and removes the security risk.
+    _fix_allow_empty() {
+        local doctor_out="${CLAWICU_DOCTOR_OUT:-}"
+        local all_ids
+        all_ids="$(_list_all_plugin_ids)"
+
+        if [ -z "$all_ids" ]; then
+            # Try reading extension dirs directly as fallback
+            local ext_dir="$HOME/.openclaw/extensions"
+            if [ -d "$ext_dir" ]; then
+                for d in "$ext_dir"/*/; do
+                    [ -d "$d" ] || continue
+                    local id
+                    id="$(basename "$d")"
+                    all_ids="${all_ids:+$all_ids }$id"
+                done
+            fi
+        fi
+
+        if [ -z "$all_ids" ]; then
+            log_warn "Could not determine installed plugin IDs"
+            printf "   [!] Manual fix: openclaw config set plugins.allow '[\"your-plugin-id\"]'\n"
+            return 1
+        fi
+
+        # Build JSON array
+        local allow_json=""
+        for id in $all_ids; do
+            allow_json="${allow_json:+$allow_json,}\"$id\""
+        done
+        allow_json="[$allow_json]"
+
+        printf "   [*] Setting plugins.allow to: %s\n" "$allow_json"
+
+        if command -v openclaw >/dev/null 2>&1; then
+            if openclaw config set plugins.allow "$allow_json" 2>/dev/null; then
+                printf "   [OK] plugins.allow updated - only listed plugins will load\n"
+                return 0
+            fi
+        fi
+
+        # Manual fallback via Node.js
+        local cfg="$HOME/.openclaw/openclaw.json"
+        if [ -f "$cfg" ] && command -v node >/dev/null 2>&1; then
+            node - "$cfg" "$allow_json" <<'JSEOF'
+const fs = require('fs');
+const [,, file, allow] = process.argv;
+let raw = fs.readFileSync(file, 'utf8');
+raw = raw.replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+let cfg; try { cfg = JSON.parse(raw); } catch(e) { cfg = {}; }
+if (!cfg.plugins) cfg.plugins = {};
+cfg.plugins.allow = JSON.parse(allow);
+fs.writeFileSync(file, JSON.stringify(cfg, null, 2));
+console.log('Updated plugins.allow:', allow);
+JSEOF
+            return $?
+        fi
+
+        log_warn "Could not update plugins.allow automatically"
+        printf "   [!] Manual fix: openclaw config set plugins.allow '%s'\n" "$allow_json"
+        return 1
+    }
+
     execute() {
         log_info "Starting plugin repair..."
 
@@ -135,7 +199,16 @@ JSEOF
             export CLAWICU_DOCTOR_OUT
         fi
 
-        # Check if there is actually a problem
+        # Case A: plugins.allow is empty (security risk warning)
+        if grep -q "plugins.allow is empty" "$doctor_out" 2>/dev/null; then
+            log_info "Detected: plugins.allow is empty - will set explicit allow list"
+            if _fix_allow_empty; then
+                return 0
+            fi
+            return 1
+        fi
+
+        # Case B: runtime crash / API compatibility errors
         if ! grep -q "Unhandled promise rejection\|is not a function\|is not defined\|plugin register returned a promise" \
                 "$doctor_out" 2>/dev/null; then
             log_info "No plugin errors detected in doctor output"
