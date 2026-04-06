@@ -53,25 +53,36 @@ phase_0_bootstrap() {
 
 phase_1_doctor() {
     phase_indicator 1 6 "OpenClaw Doctor Check"
-    
+
     if ! command -v openclaw >/dev/null 2>&1; then
         check_result WARN "OpenClaw Binary" "not found in PATH"
         return 0
     fi
-    
+
     check_result PROCESSING "OpenClaw Doctor" "running diagnosis..."
     printf "\n"
-    
-    local doctor_output
-    # Convention: exit 0 = doctor found issues, exit non-zero = all clear
-    # Both branches return 0 so main() always continues to Phase 2.
-    if doctor_output="$(openclaw doctor 2>&1)"; then
-        check_result WARN "OpenClaw Doctor" "reported issues"
-        printf "%s\n" "$doctor_output" | sed 's/^/   /'
+
+    # Save output to temp file so check-plugins.sh can reuse it without running doctor twice.
+    CLAWICU_DOCTOR_OUT="$CLAWICU_TMPDIR/doctor-output.txt"
+    openclaw doctor > "$CLAWICU_DOCTOR_OUT" 2>&1
+    local doctor_exit=$?
+
+    # Detect real errors: unhandled promise rejections, TypeError, etc.
+    local has_fatal=0
+    if grep -q "Unhandled promise rejection\|TypeError:\|ReferenceError:\|SyntaxError:" "$CLAWICU_DOCTOR_OUT" 2>/dev/null; then
+        has_fatal=1
+    fi
+
+    if [ "$has_fatal" -eq 1 ] || [ "$doctor_exit" -ne 0 ]; then
+        check_result WARN "OpenClaw Doctor" "errors detected (see details below)"
+        # Show only the error lines, indented
+        grep --color=never "Unhandled\|TypeError\|ReferenceError\|SyntaxError\|ERROR\|WARN\|WARNING" \
+            "$CLAWICU_DOCTOR_OUT" 2>/dev/null | sed 's/^/   /' | head -20
         printf "\n"
     else
         check_result OK "OpenClaw Doctor" "all checks passed"
     fi
+    export CLAWICU_DOCTOR_OUT
     return 0
 }
 

@@ -1,29 +1,83 @@
-# check-plugins.sh - Detect broken plugin manifests or load errors
+# check-plugins.sh - Detect broken or API-incompatible plugins
 
 check_plugins() {
-    SEVERITY="warn"
-    
-    local plugins_dir="${OPENCLAW_PLUGINS_DIR:-$HOME/.openclaw/plugins}"
-    
-    if [ ! -d "$plugins_dir" ]; then
-        MESSAGE="Plugins directory not found: $plugins_dir"
-        return 1  # Not an error, just no plugins
-    fi
-    
-    local broken=""
-    for plugin in "$plugins_dir"/*/; do
-        if [ -d "$plugin" ]; then
-            local manifest="$plugin/manifest.json"
-            if [ ! -f "$manifest" ]; then
-                broken="$broken $(basename "$plugin")"
+    SEVERITY="fatal"
+
+    local doctor_out="${CLAWICU_DOCTOR_OUT:-}"
+    local ext_dir="$HOME/.openclaw/extensions"
+    local broken_plugin=""
+    local broken_reason=""
+
+    # --- 1. Parse openclaw doctor output for runtime plugin errors ---
+    if [ -f "$doctor_out" ]; then
+        # Unhandled promise rejection (most critical - plugin crash)
+        if grep -q "Unhandled promise rejection" "$doctor_out" 2>/dev/null; then
+            # Extract the TypeError message
+            local type_err
+            type_err="$(grep "TypeError:\|ReferenceError:\|SyntaxError:" "$doctor_out" 2>/dev/null | head -1 | sed 's/^[[:space:]]*//')"
+            # Extract the plugin file path from "at activate (...)"
+            local plugin_path
+            plugin_path="$(grep "at activate" "$doctor_out" 2>/dev/null | head -1 | grep -o '(/[^)]*\.js)' | tr -d '()')"
+            # Try to find plugin ID from the path
+            broken_plugin="$(grep "WARN\|warn" "$doctor_out" 2>/dev/null | grep "plugin register returned a promise\|async registration" | head -1 | awk '{print $2}' | tr -d ':')"
+            if [ -z "$broken_plugin" ] && [ -n "$plugin_path" ]; then
+                broken_plugin="$(echo "$plugin_path" | grep -o 'openclaw-plugin\|[^/]*/dist-node' | head -1)"
             fi
+            broken_reason="${type_err:-plugin threw unhandled exception on activate}"
+            MESSAGE="Plugin runtime crash: ${broken_reason}"
+            DETAILS="Path: ${plugin_path:-unknown}. Plugin ID: ${broken_plugin:-unknown}. Repair will disable this plugin."
+            return 0
         fi
-    done
-    
-    if [ -n "$broken" ]; then
-        MESSAGE="Plugin manifests missing or broken:$broken"
-        return 0
+
+        # api.config.get / is not a function style API compatibility errors
+        if grep -q "is not a function\|is not defined\|Cannot read propert" "$doctor_out" 2>/dev/null; then
+            local api_err
+            api_err="$(grep "is not a function\|is not defined\|Cannot read propert" "$doctor_out" 2>/dev/null | head -1 | sed 's/^[[:space:]]*//')"
+            MESSAGE="Plugin API compatibility error: ${api_err}"
+            DETAILS="A plugin is using a deprecated OpenClaw API. Repair will disable the offending plugin."
+            return 0
+        fi
+
+        # plugin register returned a promise (ignored async registration)
+        if grep -q "plugin register returned a promise" "$doctor_out" 2>/dev/null; then
+            local async_plugin
+            async_plugin="$(grep "plugin register returned a promise" "$doctor_out" 2>/dev/null | awk 'NR==1{print $2}' | tr -d ':')"
+            SEVERITY="warn"
+            MESSAGE="Plugin '${async_plugin:-unknown}' uses async registration (ignored by OpenClaw)"
+            DETAILS="Async plugin.register() calls are silently dropped. Plugin may not work correctly."
+            return 0
+        fi
+
+        # plugins.allow is empty warning
+        if grep -q "plugins.allow is empty" "$doctor_out" 2>/dev/null; then
+            SEVERITY="warn"
+            MESSAGE="plugins.allow is empty - all discovered plugins auto-load (security risk)"
+            DETAILS="Set plugins.allow to explicit trusted plugin IDs to prevent untrusted plugins from loading."
+            return 0
+        fi
     fi
-    
-    return 1
+
+    # --- 2. Check extensions directory for structural problems ---
+    if [ -d "$ext_dir" ]; then
+        local broken_ext=""
+        for plugin_dir in "$ext_dir"/*/; do
+            [ -d "$plugin_dir" ] || continue
+            local name
+            name="$(basename "$plugin_dir")"
+            # Must have at least one of: index.js, dist/index.js, package.json
+            if [ ! -f "$plugin_dir/package.json" ] && \
+               [ ! -f "$plugin_dir/index.js" ]     && \
+               [ ! -f "$plugin_dir/dist/index.js" ]; then
+                broken_ext="$broken_ext $name"
+            fi
+        done
+        if [ -n "$broken_ext" ]; then
+            SEVERITY="warn"
+            MESSAGE="Extensions missing entry points:${broken_ext}"
+            DETAILS="These extension directories have no package.json or index.js: ${broken_ext}"
+            return 0
+        fi
+    fi
+
+    return 1  # No issues found
 }
