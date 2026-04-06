@@ -64,13 +64,15 @@ repair_daemon() {
     }
 
     _service_is_running() {
-        local os="$1"
-        if [ "$os" = "macos" ]; then
-            # 'openclaw daemon status' exits 0 when running
-            openclaw daemon status 2>/dev/null | grep -qi "running\|active" && return 0
-        else
-            # systemd user service
-            openclaw daemon status 2>/dev/null | grep -qi "running\|active" && return 0
+        # Redirect stdout to /dev/null to suppress plugin loading noise;
+        # grep operates on the piped output so this still works correctly.
+        openclaw daemon status >/dev/null 2>&1 && return 0
+        # Fallback: check via systemctl (Linux) or launchctl (macOS)
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl --user is-active openclaw-gateway >/dev/null 2>&1 && return 0
+        fi
+        if command -v launchctl >/dev/null 2>&1; then
+            launchctl list 2>/dev/null | grep -q "openclaw" && return 0
         fi
         return 1
     }
@@ -79,17 +81,17 @@ repair_daemon() {
         local os="$1"
         log_info "Installing gateway service via 'openclaw daemon install'..."
 
-        # --force overwrites an existing service registration
+        # Redirect ALL output (stdout+stderr) to suppress plugin loading noise
         if [ -n "$_gateway_port" ] && [ "$_gateway_port" != "18789" ]; then
-            openclaw daemon install --force --port "$_gateway_port" 2>/dev/null
+            openclaw daemon install --force --port "$_gateway_port" >/dev/null 2>&1
         else
-            openclaw daemon install --force 2>/dev/null
+            openclaw daemon install --force >/dev/null 2>&1
         fi
 
         sleep 2
 
         log_info "Starting gateway service via 'openclaw daemon start'..."
-        openclaw daemon start 2>/dev/null || true
+        openclaw daemon start >/dev/null 2>&1 || true
 
         sleep 3
 
@@ -101,8 +103,9 @@ repair_daemon() {
 
     _uninstall_service() {
         log_info "Uninstalling existing service (best-effort)..."
-        openclaw daemon stop 2>/dev/null || true
-        openclaw daemon uninstall 2>/dev/null || true
+        # Redirect ALL output to suppress plugin loading noise from openclaw
+        openclaw daemon stop    >/dev/null 2>&1 || true
+        openclaw daemon uninstall >/dev/null 2>&1 || true
     }
 
     execute() {

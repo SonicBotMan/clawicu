@@ -46,9 +46,9 @@ repair_version_mismatch() {
         # --- Strategy 3: openclaw daemon commands ---
         if [ "$restarted" -eq 0 ] && command -v openclaw >/dev/null 2>&1; then
             printf "   [*] Restarting via openclaw daemon stop/start\n"
-            openclaw daemon stop 2>/dev/null || true
+            openclaw daemon stop >/dev/null 2>&1 || true
             sleep 1
-            if openclaw daemon start 2>/dev/null; then
+            if openclaw daemon start >/dev/null 2>&1; then
                 printf "   [OK] Gateway restarted via openclaw daemon\n"
                 restarted=1
             fi
