@@ -58,10 +58,10 @@ for repair in "$RESCUE_DIR/repairs"/repair-*.sh; do
     grep -v '^#!/' "$repair" | grep -v '^\. "' >> "$OUTPUT_FILE" || true
 done
 
-# Inline main rescue.sh (without lib sourcing)
+# Inline main rescue.sh (without shebang and lib sourcing lines)
 echo "" >> "$OUTPUT_FILE"
 echo "# === MAIN ORCHESTRATOR ===" >> "$OUTPUT_FILE"
-grep -v '^#!/' "$RESCUE_DIR/rescue.sh" | grep -v '^\. "' | grep -v 'bootstrap$' | grep -v 'main "' >> "$OUTPUT_FILE" || true
+grep -v '^#!/' "$RESCUE_DIR/rescue.sh" | grep -v '^\. "' >> "$OUTPUT_FILE" || true
 
 # Make executable
 chmod +x "$OUTPUT_FILE"

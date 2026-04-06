@@ -3454,6 +3454,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CLAWICU_VERSION="0.1.0"
 
 
+bootstrap
 
 DRY_RUN=0
 VERBOSE=0
@@ -3804,6 +3805,7 @@ phase_6_report() {
 }
 
 main() {
+    phase_0_bootstrap
     phase_1_doctor || true
     phase_2_checks
     phase_3_triage
@@ -3814,3 +3816,4 @@ main() {
     phase_6_report
 }
 
+main "$@"
