@@ -1,4 +1,5 @@
 import { HeartPulse, Terminal, Syringe, Activity } from "lucide-react";
+import { ShareSOSButton } from "@/components/ShareSOSButton";
 
 export function CTASection() {
   return (
@@ -13,7 +14,7 @@ export function CTASection() {
           <div className="absolute -left-32 -top-32 h-64 w-64 rounded-full bg-primary/20 blur-[100px]" />
           <div className="absolute -bottom-32 -right-32 h-64 w-64 rounded-full bg-[#00e87a]/10 blur-[100px]" />
 
-          {/* Top stripe — emergency yellow-black */}
+          {/* Top stripe — emergency caution */}
           <div className="absolute inset-x-0 top-0 h-1.5 rounded-t-3xl"
                style={{ background: "repeating-linear-gradient(45deg, #ff4d4d 0px, #ff4d4d 12px, #1a0a0a 12px, #1a0a0a 24px)" }} />
 
@@ -38,6 +39,7 @@ export function CTASection() {
               One command. Full diagnosis. Automated repair. Your gateway back online in minutes.
             </p>
 
+            {/* Primary CTAs */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <a
                 href="/rescue"
@@ -53,6 +55,8 @@ export function CTASection() {
                 <Activity className="h-4 w-4 text-[#00e87a]" />
                 View Protocol Docs
               </a>
+              {/* Share SOS button */}
+              <ShareSOSButton />
             </div>
 
             {/* Command pill */}
@@ -60,6 +64,13 @@ export function CTASection() {
               <Terminal className="h-3 w-3 text-primary" />
               curl -fsSL https://xagent.icu/r | sh
             </div>
+
+            {/* SOS share hint */}
+            <p className="mt-4 text-xs text-muted-foreground/50">
+              OpenClaw crashed? Hit{" "}
+              <span className="text-foreground/70">Share SOS to X</span>
+              {" "}— post a rescue card with one click.
+            </p>
           </div>
 
           {/* Bottom stripe */}
