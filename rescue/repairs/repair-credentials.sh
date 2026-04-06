@@ -114,8 +114,11 @@ repair_credentials() {
         backup_create "repair-credentials"
         state_push "repair-credentials"
 
-        # Check each known provider
-        _known_providers | while IFS=: read -r provider env_var; do
+        # Use here-doc instead of pipe so the while loop runs in the current
+        # shell — a pipe would create a subshell and variable updates
+        # (missing_count, fixed_count, failed_providers) would be lost.
+        while IFS=: read -r provider env_var; do
+            [ -z "$provider" ] && continue
             if _credential_exists "$provider"; then
                 log_info "Credential for $provider: OK"
                 continue
@@ -142,7 +145,9 @@ repair_credentials() {
                     failed_providers="$failed_providers $provider"
                 fi
             fi
-        done
+        done <<PROVIDERS
+$(_known_providers)
+PROVIDERS
 
         if [ -n "$failed_providers" ]; then
             log_warn "Some credentials could not be verified:$failed_providers"

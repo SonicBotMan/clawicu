@@ -113,16 +113,16 @@ repair_port() {
     }
 
     # Change the gateway port in config
+    # OpenClaw config: ~/.openclaw/openclaw.json (JSON5, unquoted keys)
+    # Port lives at: gateway: { port: 18789 }
     # Args: $1 = new port number
     _change_config_port() {
         local new_port="$1"
-        local config_dir="${OPENCLAW_CONFIG_DIR:-$HOME/.config/opencode}"
+        # OpenClaw config is always at ~/.openclaw/openclaw.json
+        local config_dir="${OPENCLAW_CONFIG_DIR:-$HOME/.openclaw}"
         local config_file=""
 
-        # Find config file
-        for f in "$config_dir/config.json5" "$config_dir/config.json" \
-                 "${OPENCLAW_STATE_DIR:-$HOME/.openclaw}/config.json5" \
-                 "${OPENCLAW_STATE_DIR:-$HOME/.openclaw}/config.json"; do
+        for f in "$config_dir/openclaw.json" "$config_dir/openclaw.json5"; do
             if [ -f "$f" ]; then
                 config_file="$f"
                 break
@@ -130,21 +130,37 @@ repair_port() {
         done
 
         if [ -z "$config_file" ]; then
+            # If config file doesn't exist yet, use 'openclaw config set' to create it
+            if command -v openclaw >/dev/null 2>&1; then
+                log_info "No config file found; using 'openclaw config set' to create entry"
+                openclaw config set gateway.port "$new_port" 2>/dev/null && return 0
+            fi
             log_warn "No config file found to update"
             return 1
+        fi
+
+        log_info "Updating port in: $config_file"
+
+        # Preferred: delegate to the official CLI which handles JSON5 correctly
+        if command -v openclaw >/dev/null 2>&1; then
+            openclaw config set gateway.port "$new_port" 2>/dev/null && {
+                log_info "Port set to $new_port via openclaw config set"
+                return 0
+            }
         fi
 
         local old_port
         old_port=$(_default_port)
 
-        log_info "Updating port in: $config_file"
-
-        # Use sed to replace port
+        # Fallback: sed-based substitution using a temp file (avoids BSD sed -i issues).
+        # OpenClaw JSON5 uses unquoted key: gateway: { port: 18789 }
+        # Also handle quoted form for safety: "port": 18789
         if command -v sed >/dev/null 2>&1; then
-            sed -i.bak "s/\"port\"[[:space:]]*:[[:space:]]*$old_port/\"port\": $new_port/" "$config_file"
-            # Also handle unquoted
-            sed -i "s/port:[[:space:]]*$old_port/port: $new_port/" "$config_file"
-            rm -f "$config_file.bak"
+            local tmp
+            tmp="$(mktemp)"
+            sed "s/port:[[:space:]]*$old_port/port: $new_port/g" "$config_file" \
+                | sed "s/\"port\"[[:space:]]*:[[:space:]]*$old_port/\"port\": $new_port/g" > "$tmp" \
+                && mv "$tmp" "$config_file" || { rm -f "$tmp"; return 1; }
             log_info "Port changed from $old_port to $new_port"
             return 0
         fi

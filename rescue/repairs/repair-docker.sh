@@ -122,20 +122,19 @@ repair_docker() {
         local host_port="$4"
         local volumes="$5"
 
-        local run_args="-d --name $name"
-
-        # Add port mapping
-        run_args="$run_args -p ${host_port}:18789"
+        # Build the argument list using positional parameters so each argument
+        # is passed as a distinct word — avoids word-splitting on paths with spaces.
+        set -- -d --name "$name" -p "${host_port}:18789"
 
         # Add volume mounts if present
         if [ -n "$volumes" ]; then
             for vol in $volumes; do
-                run_args="$run_args -v $vol"
+                set -- "$@" -v "$vol"
             done
         fi
 
-        log_info "Creating new container: $runtime run $run_args $image"
-        "$runtime" run $run_args "$image" 2>&1
+        log_info "Creating new container: $runtime run $* $image"
+        "$runtime" run "$@" "$image" 2>&1
     }
 
     # Verify gateway responds

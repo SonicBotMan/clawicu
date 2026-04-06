@@ -1,5 +1,5 @@
 #!/bin/sh
-# repair-config.sh - Restore OpenCode config from a backup
+# repair-config.sh - Restore OpenClaw config from a backup
 
 set -e
 
@@ -18,7 +18,7 @@ repair_config() {
         echo "What would happen:"
         echo "  - List available config backups"
         echo "  - Back up current config before overwriting"
-        echo "  - Restore selected backup to active config path"
+        echo "  - Restore selected backup to active config path (~/.openclaw/openclaw.json)"
         echo "  - Verify restored config is valid JSON5"
         echo "  - Roll back if verification fails"
     }
@@ -33,7 +33,7 @@ repair_config() {
         fi
 
         local count=0
-        for f in "$backup_dir"/*.json5 "$backup_dir"/*.json; do
+        for f in "$backup_dir"/*.json "$backup_dir"/*.json5; do
             if [ -f "$f" ]; then
                 count=$((count + 1))
                 echo "$count $(basename "$f")"
@@ -80,7 +80,7 @@ json.loads(txt)
         fi
 
         if command -v node >/dev/null 2>&1; then
-            node -e "try { require('fs').readFileSync(process.argv[1],'utf8'); } catch(e) { process.exit(1); }" "$cfg" 2>/dev/null && return 0
+            node -e "try { JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')); } catch(e) { process.exit(1); }" "$cfg" 2>/dev/null && return 0
         fi
 
         # Fallback: accept any non-empty file with braces
@@ -92,21 +92,24 @@ json.loads(txt)
     execute() {
         log_info "Starting config restore repair..."
 
-        # Locate config file
-        local config_dir="${OPENCODE_CONFIG_DIR:-$HOME/.config/opencode}"
-        local config_file="$config_dir/config.json5"
+        # OpenClaw config lives at ~/.openclaw/openclaw.json (JSON5 format)
+        local config_dir="${OPENCLAW_CONFIG_DIR:-$HOME/.openclaw}"
+        local config_file="$config_dir/openclaw.json"
 
+        # Fallback: accept legacy .json5 extension if present
         if [ ! -f "$config_file" ]; then
-            config_file="$config_dir/config.json"
+            config_file="$config_dir/openclaw.json5"
         fi
 
         if [ ! -f "$config_file" ]; then
-            log_fatal "Cannot find config file in: $config_dir"
+            log_fatal "Cannot find config file in: $config_dir (expected $config_dir/openclaw.json)"
             return 1
         fi
 
+        log_info "Config file: $config_file"
+
         # Locate backups
-        local backup_dir="${OPENCODE_BACKUP_DIR:-$HOME/.local/share/opencode/backups/config}"
+        local backup_dir="${OPENCLAW_BACKUP_DIR:-$HOME/.openclaw/backups/config}"
 
         log_info "Looking for backups in: $backup_dir"
         if ! _list_backups "$backup_dir"; then
@@ -116,11 +119,11 @@ json.loads(txt)
 
         # Determine which backup to restore
         # Use env var or fall back to the most recent backup
-        local target_backup="${OPENCODE_RESTORE_BACKUP:-}"
+        local target_backup="${OPENCLAW_RESTORE_BACKUP:-}"
 
         if [ -z "$target_backup" ]; then
             # Pick the most recent backup file
-            target_backup=$(ls -t "$backup_dir"/*.json5 "$backup_dir"/*.json 2>/dev/null | head -1)
+            target_backup=$(ls -t "$backup_dir"/*.json "$backup_dir"/*.json5 2>/dev/null | head -1)
         else
             # Treat as a filename relative to backup_dir
             if [ ! -f "$target_backup" ]; then
@@ -141,12 +144,15 @@ json.loads(txt)
             return 1
         fi
 
-        # Backup current config before overwriting
-        local backup_path
-        backup_path="$(backup_create "repair-config")"
-        log_info "Current config backed up to: $backup_path"
+        # Save a direct copy of the current config file for rollback.
+        # backup_create() produces a tar.gz of the state dir — cannot be
+        # cp'd directly back as a config file, so we keep a separate snapshot.
+        local config_snapshot="${config_file}.clawicu-$(date '+%Y%m%d-%H%M%S').bak"
+        cp "$config_file" "$config_snapshot"
+        log_info "Config snapshot saved: $config_snapshot"
 
-        # Record state for rollback
+        # Full state backup (discard path — not used for cp rollback)
+        backup_create "repair-config" >/dev/null
         state_push "repair-config"
 
         # Perform the restore
@@ -155,12 +161,13 @@ json.loads(txt)
 
         # Verify the restored config
         if _validate_json5 "$config_file"; then
+            rm -f "$config_snapshot"
             log_info "Config restore completed successfully"
             return 0
         else
             log_error "Restored config failed validation, rolling back..."
-            # Restore from the backup we just made
-            cp "$backup_path" "$config_file"
+            cp "$config_snapshot" "$config_file"
+            rm -f "$config_snapshot"
             state_rollback
             log_error "Rolled back to previous config"
             return 1
