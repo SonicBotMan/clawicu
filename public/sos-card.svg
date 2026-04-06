@@ -46,9 +46,9 @@
   <rect width="1200" height="630" fill="url(#glow-red)"/>
   <rect width="1200" height="630" fill="url(#glow-green)"/>
 
-  <!-- Hazard stripes -->
+  <!-- Hazard stripes (bottom strip inset from y=630 so headless screenshots never clip the lower edge) -->
   <rect x="0" y="0" width="1200" height="14" fill="url(#hazard)"/>
-  <rect x="0" y="616" width="1200" height="14" fill="url(#hazard)"/>
+  <rect x="0" y="598" width="1200" height="14" fill="url(#hazard)"/>
 
   <!-- Subtle grid -->
   <g opacity="0.035" stroke="#00e87a" stroke-width="0.5">
@@ -106,9 +106,10 @@
     <text x="32" y="0" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="800" fill="#f0f4ff">ClawICU</text>
   </g>
 
-  <!-- ========== URL bar: ICU monitor / routing strip (redesigned) ========== -->
-  <g transform="translate(0 0)">
-    <rect x="48" y="478" width="1104" height="112" rx="14" fill="url(#urlBarFill)" stroke="rgba(0,232,122,0.22)" stroke-width="1.5" filter="url(#softShadow)"/>
+  <!-- ========== URL bar: ICU monitor / routing strip (shifted up: safe margin above bottom hazard + screenshot crop) ========== -->
+  <g transform="translate(0 -36)">
+    <!-- Shadow only on fill; feDropShadow can extend past viewBox and clip when rasterized -->
+    <rect x="48" y="478" width="1104" height="112" rx="14" fill="url(#urlBarFill)" stroke="rgba(0,232,122,0.22)" stroke-width="1.5"/>
     <!-- Top scanline accent -->
     <rect x="48" y="478" width="1104" height="3" rx="14" fill="url(#urlBarFill)"/>
     <line x1="64" y1="492" x2="1136" y2="492" stroke="rgba(0,232,122,0.35)" stroke-width="1"/>
@@ -143,5 +144,9 @@
       <text x="38" y="22" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="10" font-weight="700" fill="#00e87a" letter-spacing="0.2em">LIVE</text>
       <text x="38" y="38" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="8" fill="rgba(136,146,176,0.7)" letter-spacing="0.14em">CARD PREVIEW</text>
     </g>
+
+    <!-- Inner footer rule + breathing room so the panel reads "closed" above the hazard strip -->
+    <line x1="64" y1="576" x2="1136" y2="576" stroke="rgba(0,232,122,0.22)" stroke-width="1"/>
+    <text x="68" y="588" font-family="ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-size="7" fill="rgba(136,146,176,0.35)" letter-spacing="0.22em">SECURE HANDOFF TO GATEWAY</text>
   </g>
 </svg>
