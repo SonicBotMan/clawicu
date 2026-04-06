@@ -20,8 +20,9 @@ repair_plugins() {
         local doctor_out="${CLAWICU_DOCTOR_OUT:-}"
         [ -f "$doctor_out" ] || return 1
         # "at activate (/path/to/plugin/dist-node/index.js:LINE:COL)"
+        # grep -o '(/[^)]*)' matches the whole "(path:line:col)" group
         grep "at activate" "$doctor_out" 2>/dev/null | head -1 \
-            | grep -o '(/[^)]*\.js)' | tr -d '()' | sed 's/:[0-9]*:[0-9]*$//'
+            | grep -o '(/[^)]*)' | tr -d '()' | sed 's/:[0-9]*:[0-9]*$//'
     }
 
     # Parse doctor output file for the broken plugin's ID
@@ -29,9 +30,10 @@ repair_plugins() {
     _find_broken_plugin_id() {
         local doctor_out="${CLAWICU_DOCTOR_OUT:-}"
         [ -f "$doctor_out" ] || return 1
-        # "WARN workflow-orchestration: plugin register returned a promise"
+        # "│  - WARN workflow-orchestration: plugin register returned a promise"
+        # Use sed to extract the identifier after "WARN "
         grep "plugin register returned a promise\|async registration is ignored" "$doctor_out" 2>/dev/null \
-            | head -1 | awk '{print $2}' | tr -d ':'
+            | head -1 | sed 's/.*WARN[[:space:]]*\([a-zA-Z0-9_-]*\):.*/\1/'
     }
 
     # Get all plugin IDs that are currently loaded (from doctor output)

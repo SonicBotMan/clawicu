@@ -1096,11 +1096,14 @@ check_plugins() {
             # Extract the TypeError message
             local type_err
             type_err="$(grep "TypeError:\|ReferenceError:\|SyntaxError:" "$doctor_out" 2>/dev/null | head -1 | sed 's/^[[:space:]]*//')"
-            # Extract the plugin file path from "at activate (...)"
+            # Extract the plugin file path from "at activate (/path/to/file.js:LINE:COL)"
             local plugin_path
-            plugin_path="$(grep "at activate" "$doctor_out" 2>/dev/null | head -1 | grep -o '(/[^)]*\.js)' | tr -d '()')"
-            # Try to find plugin ID from the path
-            broken_plugin="$(grep "WARN\|warn" "$doctor_out" 2>/dev/null | grep "plugin register returned a promise\|async registration" | head -1 | awk '{print $2}' | tr -d ':')"
+            plugin_path="$(grep "at activate" "$doctor_out" 2>/dev/null | head -1 \
+                | grep -o '(/[^)]*)' | tr -d '()' | sed 's/:[0-9]*:[0-9]*$//')"
+            # Extract plugin ID: "│  - WARN workflow-orchestration: plugin register..."
+            broken_plugin="$(grep "plugin register returned a promise\|async registration is ignored" \
+                "$doctor_out" 2>/dev/null | head -1 \
+                | sed 's/.*WARN[[:space:]]*\([a-zA-Z0-9_-]*\):.*/\1/')"
             if [ -z "$broken_plugin" ] && [ -n "$plugin_path" ]; then
                 broken_plugin="$(echo "$plugin_path" | grep -o 'openclaw-plugin\|[^/]*/dist-node' | head -1)"
             fi
@@ -1126,6 +1129,16 @@ check_plugins() {
             SEVERITY="warn"
             MESSAGE="Plugin '${async_plugin:-unknown}' uses async registration (ignored by OpenClaw)"
             DETAILS="Async plugin.register() calls are silently dropped. Plugin may not work correctly."
+            return 0
+        fi
+
+        # api.config.get / is not a function (without Unhandled rejection wrapper)
+        if grep -q "is not a function\|is not defined\|Cannot read propert" "$doctor_out" 2>/dev/null; then
+            local api_err
+            api_err="$(grep "is not a function\|is not defined\|Cannot read propert" \
+                "$doctor_out" 2>/dev/null | head -1 | sed 's/^[[:space:]]*//')"
+            MESSAGE="Plugin API compatibility error: ${api_err}"
+            DETAILS="A plugin is using a deprecated OpenClaw API. Repair will disable the offending plugin."
             return 0
         fi
 
@@ -2776,8 +2789,9 @@ repair_plugins() {
         local doctor_out="${CLAWICU_DOCTOR_OUT:-}"
         [ -f "$doctor_out" ] || return 1
         # "at activate (/path/to/plugin/dist-node/index.js:LINE:COL)"
+        # grep -o '(/[^)]*)' matches the whole "(path:line:col)" group
         grep "at activate" "$doctor_out" 2>/dev/null | head -1 \
-            | grep -o '(/[^)]*\.js)' | tr -d '()' | sed 's/:[0-9]*:[0-9]*$//'
+            | grep -o '(/[^)]*)' | tr -d '()' | sed 's/:[0-9]*:[0-9]*$//'
     }
 
     # Parse doctor output file for the broken plugin's ID
@@ -2785,9 +2799,10 @@ repair_plugins() {
     _find_broken_plugin_id() {
         local doctor_out="${CLAWICU_DOCTOR_OUT:-}"
         [ -f "$doctor_out" ] || return 1
-        # "WARN workflow-orchestration: plugin register returned a promise"
+        # "│  - WARN workflow-orchestration: plugin register returned a promise"
+        # Use sed to extract the identifier after "WARN "
         grep "plugin register returned a promise\|async registration is ignored" "$doctor_out" 2>/dev/null \
-            | head -1 | awk '{print $2}' | tr -d ':'
+            | head -1 | sed 's/.*WARN[[:space:]]*\([a-zA-Z0-9_-]*\):.*/\1/'
     }
 
     # Get all plugin IDs that are currently loaded (from doctor output)
