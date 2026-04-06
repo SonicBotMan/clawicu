@@ -687,6 +687,56 @@ check_binary() {
     return 1
 }
 
+# --- check-channel-policy.sh ---
+# check-channel-policy.sh - Detect channel configuration issues
+# Based on real-world repair of 小文 (192.168.11.219)
+#
+# 问题: groupPolicy='allowlist' + requireMention=true 导致私信不响应
+# 解决方案: 将 groupPolicy 改为 'open' 或移除 requireMention
+
+check_channel_policy() {
+    SEVERITY="warn"
+    
+    local config_file="$HOME/.openclaw/openclaw.json"
+    [ -f "$config_file" ] || return 1
+    
+    # 需要 jq 解析 JSON
+    command -v jq >/dev/null 2>&1 || return 1
+    
+    # 1. 检查 Discord 是否启用
+    local discord_enabled
+    discord_enabled=$(jq -r '.channels.discord.enabled // false' "$config_file" 2>/dev/null)
+    [ "$discord_enabled" = "true" ] || return 1
+    
+    # 2. 检查 Discord groupPolicy
+    local discord_policy
+    discord_policy=$(jq -r '.channels.discord.groupPolicy // empty' "$config_file" 2>/dev/null)
+    
+    if [ "$discord_policy" = "allowlist" ]; then
+        # 3. 检查是否有 requireMention
+        local has_require_mention
+        has_require_mention=$(jq '[.channels.discord.guilds[]?.requireMention // false] | any' "$config_file" 2>/dev/null)
+        
+        if [ "$has_require_mention" = "true" ]; then
+            MESSAGE="Discord DMs may not work: groupPolicy='allowlist' with requireMention=true"
+            DETAILS="Direct messages to Discord bot will be ignored. Fix: Change groupPolicy to 'open' or set requireMention to false."
+            return 0
+        fi
+    fi
+    
+    # 4. 检查 allowFrom 是否为空
+    local allow_from_count
+    allow_from_count=$(jq '.channels.discord.allowFrom // [] | length' "$config_file" 2>/dev/null)
+    
+    if [ "$allow_from_count" = "0" ] && [ "$discord_policy" != "open" ]; then
+        MESSAGE="Discord allowFrom is empty - no users can message the bot"
+        DETAILS="Add user IDs to allowFrom array to allow specific users to message the bot, or set groupPolicy to 'open'."
+        return 0
+    fi
+    
+    return 1  # No channel policy issues
+}
+
 # --- check-config-schema.sh ---
 # check-config-schema.sh - Detect invalid config field values (port, auth, etc.)
 
@@ -1078,6 +1128,122 @@ check_node() {
     return 1
 }
 
+# --- check-plugins-sdk.sh ---
+# check-plugins-sdk.sh - Detect plugin SDK compatibility issues
+# Based on real-world repair of 小文 (192.168.11.219)
+#
+# 检测的问题:
+#   1. ERR_MODULE_NOT_FOUND: plugin-sdk 模块缺失
+#   2. api.config.get is not a function - API 版本不兼容
+#   3. plugins.load.paths 中的无效路径
+
+check_plugins_sdk() {
+    SEVERITY="fatal"
+
+    local doctor_out="${CLAWICU_DOCTOR_OUT:-}"
+    local config_file="$HOME/.openclaw/openclaw.json"
+    local ext_dir="$HOME/.openclaw/extensions"
+
+    # --- 1. 检测 ERR_MODULE_NOT_FOUND: plugin-sdk ---
+    if [ -f "$doctor_out" ]; then
+        # "Cannot find module '/path/to/plugin-sdk'"
+        if grep -q "Cannot find module.*plugin-sdk\|ERR_MODULE_NOT_FOUND.*plugin-sdk" "$doctor_out" 2>/dev/null; then
+            local sdk_err
+            sdk_err="$(grep "Cannot find module.*plugin-sdk" "$doctor_out" | head -1)"
+            # 提取引用 plugin-sdk 的插件路径
+            local plugin_path
+            plugin_path="$(grep "imported from" "$doctor_out" 2>/dev/null | head -1 \
+                | grep -o '/[^ ]*\.js')"
+            
+            MESSAGE="Plugin SDK module missing"
+            DETAILS="A plugin imports openclaw/plugin-sdk but the module is not installed. Path: ${plugin_path:-unknown}. This usually happens after OpenClaw upgrade. Repair: reinstall plugin dependencies or disable the plugin."
+            return 0
+        fi
+
+        # "api.config.get is not a function" - specific SDK API incompatibility
+        if grep -q "api\.config\.get is not a function\|api\.tools\.register is not a function" "$doctor_out" 2>/dev/null; then
+            local api_err
+            api_err="$(grep "is not a function" "$doctor_out" | head -1 | sed 's/^[[:space:]]*//')"
+            # 提取插件路径
+            local plugin_path
+            plugin_path="$(grep -B5 "is not a function" "$doctor_out" 2>/dev/null \
+                | grep "at activate" | head -1 \
+                | grep -o '(/[^)]*)' | tr -d '()' | sed 's/:[0-9]*:[0-9]*$//')"
+            
+            MESSAGE="Plugin SDK API incompatibility: ${api_err:-unknown API error}"
+            DETAILS="Plugin at '${plugin_path:-unknown}' uses an outdated OpenClaw plugin SDK API. The plugin needs to be updated to match the current OpenClaw version, or disabled."
+            return 0
+        fi
+
+        # "TypeError: ... is not a function" general plugin errors
+        if grep -q "TypeError:.*is not a function\|ReferenceError:.*is not defined" "$doctor_out" 2>/dev/null; then
+            # 检查是否在 activate 上下文中
+            if grep -B3 "is not a function\|is not defined" "$doctor_out" 2>/dev/null | grep -q "at activate"; then
+                local type_err
+                type_err="$(grep "TypeError:\|ReferenceError:" "$doctor_out" | head -1 | sed 's/^[[:space:]]*//')"
+                MESSAGE="Plugin runtime error during activation"
+                DETAILS="${type_err:-Unknown error}. This is typically caused by API incompatibility after OpenClaw upgrade."
+                return 0
+            fi
+        fi
+    fi
+
+    # --- 2. 检测 plugins.load.paths 中的无效路径 ---
+    if [ -f "$config_file" ] && command -v jq >/dev/null 2>&1; then
+        local paths
+        paths=$(jq -r '.plugins.load.paths[]? // empty' "$config_file" 2>/dev/null)
+        
+        for path in $paths; do
+            # 展开路径
+            local expanded_path="${path//\~/$HOME}"
+            expanded_path="${expanded_path//\$HOME/$HOME}"
+            
+            if [ ! -d "$expanded_path" ]; then
+                MESSAGE="Invalid plugin path in config: $path"
+                DETAILS="plugins.load.paths contains '$path' which does not exist. This will cause Gateway startup failure. Repair will remove this path."
+                return 0
+            fi
+            
+            # 检查路径是否指向已禁用的插件目录
+            if [ -d "${expanded_path}.disabled" ] || [ -d "${expanded_path}.clawicu-disabled" ]; then
+                MESSAGE="Plugin path points to disabled plugin: $path"
+                DETAILS="The plugin at '$path' appears to have been disabled (disabled directory exists). Repair will remove this path from config."
+                return 0
+            fi
+        done
+    fi
+
+    # --- 3. 检测 extensions 目录中的插件依赖问题 ---
+    if [ -d "$ext_dir" ]; then
+        for plugin_dir in "$ext_dir"/*/; do
+            [ -d "$plugin_dir" ] || continue
+            local name
+            name="$(basename "$plugin_dir")"
+            
+            # 跳过已禁用的
+            case "$name" in
+                *.disabled|*.clawicu-disabled) continue ;;
+            esac
+            
+            # 检查 node_modules 是否存在但 plugin-sdk 缺失
+            if [ -f "$plugin_dir/package.json" ] && [ -d "$plugin_dir/node_modules" ]; then
+                # 检查 package.json 是否依赖 plugin-sdk
+                if grep -q "plugin-sdk\|@openclaw/plugin-sdk" "$plugin_dir/package.json" 2>/dev/null; then
+                    if [ ! -d "$plugin_dir/node_modules/openclaw" ] && \
+                       [ ! -d "$plugin_dir/node_modules/@openclaw" ]; then
+                        MESSAGE="Plugin '$name' has broken plugin-sdk dependency"
+                        DETAILS="Plugin at $plugin_dir declares plugin-sdk dependency but node_modules is incomplete. Run: cd '$plugin_dir' && npm install"
+                        SEVERITY="warn"
+                        return 0
+                    fi
+                fi
+            fi
+        done
+    fi
+
+    return 1  # No issues found
+}
+
 # --- check-plugins.sh ---
 # check-plugins.sh - Detect broken or API-incompatible plugins
 
@@ -1256,6 +1422,71 @@ check_state_dir() {
     return 1
 }
 
+# --- check-version-mismatch.sh ---
+# check-version-mismatch.sh - Detect CLI/Gateway version mismatch
+# Based on real-world repair of 小文 (192.168.11.219)
+#
+# 问题: npm install 后 CLI 是 2026.4.5，但 Gateway 显示 2026.4.2
+# 原因: Gateway 没有重启，还在用旧版本
+# 检测: 比较运行中的 Gateway 版本和安装的 CLI 版本
+
+check_version_mismatch() {
+    SEVERITY="warn"
+    
+    local cli_version
+    local gateway_version
+    
+    # 1. 获取 CLI 版本
+    if command -v openclaw >/dev/null 2>&1; then
+        cli_version=$(openclaw --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]+\.[0-9]+' | head -1)
+    else
+        return 1  # openclaw binary not found
+    fi
+    
+    [ -n "$cli_version" ] || return 1
+    
+    # 2. 获取 Gateway 版本
+    # 方法 1: 从 systemd 服务状态
+    if command -v systemctl >/dev/null 2>&1; then
+        if systemctl --user is-active openclaw-gateway >/dev/null 2>&1; then
+            gateway_version=$(systemctl --user status openclaw-gateway --no-pager 2>/dev/null \
+                | grep -oE 'v[0-9]{4}\.[0-9]+\.[0-9]+' | head -1 | tr -d 'v')
+        fi
+    fi
+    
+    # 方法 2: 从进程列表
+    if [ -z "$gateway_version" ]; then
+        gateway_version=$(ps aux 2>/dev/null | grep "[o]penclaw-gatewa" \
+            | grep -oE 'v[0-9]{4}\.[0-9]+\.[0-9]+' | head -1 | tr -d 'v')
+    fi
+    
+    # 方法 3: 从日志文件
+    if [ -z "$gateway_version" ]; then
+        local log_file="$HOME/.openclaw/logs/openclaw-$(date +%Y-%m-%d).log"
+        if [ -f "$log_file" ]; then
+            gateway_version=$(grep -h "OpenClaw Gateway" "$log_file" 2>/dev/null | tail -1 \
+                | grep -oE 'v[0-9]{4}\.[0-9]+\.[0-9]+' | head -1 | tr -d 'v')
+        fi
+    fi
+    
+    # 方法 4: 从 /tmp 日志
+    if [ -z "$gateway_version" ]; then
+        gateway_version=$(grep -rh "OpenClaw Gateway" /tmp/openclaw/*.log 2>/dev/null | tail -1 \
+            | grep -oE 'v[0-9]{4}\.[0-9]+\.[0-9]+' | head -1 | tr -d 'v')
+    fi
+    
+    # 3. 比较版本
+    if [ -n "$gateway_version" ]; then
+        if [ "$cli_version" != "$gateway_version" ]; then
+            MESSAGE="Version mismatch: CLI=$cli_version, Gateway=$gateway_version"
+            DETAILS="Gateway is running an older version than installed CLI. Restart with: systemctl --user restart openclaw-gateway"
+            return 0
+        fi
+    fi
+    
+    return 1  # No version mismatch
+}
+
 # --- check-version.sh ---
 # check-version.sh - Detect unsupported OpenClaw version
 
@@ -1285,6 +1516,73 @@ check_version() {
 }
 
 # === REPAIR MODULES ===
+
+# --- repair-channel-policy.sh ---
+# repair-channel-policy.sh - Fix channel configuration issues
+# Based on real-world repair of 小文 (192.168.11.219)
+#
+# 问题: groupPolicy='allowlist' 导致私信不响应
+# 解决方案: 将 groupPolicy 改为 'open'
+
+repair_channel_policy() {
+    describe() {
+        echo "Adjust Discord channel policy to allow direct messages"
+    }
+
+    dry_run() {
+        echo "What would happen:"
+        echo "  - Change channels.discord.groupPolicy to 'open'"
+        echo "  - Backup config before modification"
+        echo "  - Restart gateway to apply changes"
+    }
+
+    execute() {
+        log_info "Starting channel policy repair..."
+
+        local config_file="$HOME/.openclaw/openclaw.json"
+        [ -f "$config_file" ] || { log_warn "Config file not found"; return 1; }
+
+        # 检查是否需要修复
+        local current_policy
+        current_policy=$(jq -r '.channels.discord.groupPolicy // empty' "$config_file" 2>/dev/null)
+        
+        if [ "$current_policy" != "allowlist" ]; then
+            log_info "Current groupPolicy is '$current_policy', no fix needed"
+            return 0
+        fi
+
+        log_info "Changing groupPolicy from 'allowlist' to 'open'..."
+
+        # 备份
+        backup_create "repair-channel-policy" >/dev/null
+
+        # 修改配置
+        if command -v jq >/dev/null 2>&1; then
+            local tmp_file
+            tmp_file=$(mktemp)
+            
+            if jq '.channels.discord.groupPolicy = "open"' "$config_file" > "$tmp_file"; then
+                mv "$tmp_file" "$config_file"
+                log_info "Changed groupPolicy to 'open'"
+                printf "   [OK] Discord groupPolicy updated to 'open'\n"
+            else
+                rm -f "$tmp_file"
+                log_error "Failed to update config"
+                return 1
+            fi
+        else
+            log_warn "jq not available, cannot auto-fix"
+            printf "   [!] Manual fix: edit %s and change groupPolicy to 'open'\n" "$config_file"
+            return 1
+        fi
+
+        # 提示重启
+        log_info "Restart gateway to apply changes: systemctl --user restart openclaw-gateway"
+        printf "   [i] Restart required: systemctl --user restart openclaw-gateway\n"
+
+        return 0
+    }
+}
 
 # --- repair-config-field.sh ---
 # repair-config-field.sh - Reset individual OpenClaw config fields to defaults
@@ -2766,6 +3064,276 @@ DEFCONFIG
     }
 }
 
+# --- repair-plugins-paths.sh ---
+# repair-plugins-paths.sh - Clean up invalid plugin load paths
+# Based on real-world repair of 小文 (192.168.11.219)
+# 
+# 问题: plugins.load.paths 包含无效路径导致 Gateway 启动失败
+# 解决方案:
+#   1. 检查每个路径是否存在
+#   2. 从 plugins.load.paths 中移除无效路径
+#   3. 备份配置
+
+repair_plugins_paths() {
+    describe() {
+        echo "Remove invalid paths from plugins.load.paths configuration"
+    }
+
+    dry_run() {
+        echo "What would happen:"
+        echo "  - Parse plugins.load.paths from openclaw.json"
+        echo "  - Check each path exists"
+        echo "  - Remove non-existent paths from config"
+        echo "  - Backup config before modification"
+    }
+
+    execute() {
+        log_info "Starting plugin paths cleanup..."
+
+        local config_file="$HOME/.openclaw/openclaw.json"
+        [ -f "$config_file" ] || { log_warn "Config file not found"; return 0; }
+
+        # 检查是否有 jq
+        if ! command -v jq >/dev/null 2>&1; then
+            log_warn "jq not available, cannot auto-fix plugin paths"
+            printf "   [!] Manual fix: install jq or edit %s manually\n" "$config_file"
+            return 1
+        fi
+
+        # 检查是否有 paths 配置
+        local has_paths
+        has_paths=$(jq 'has("plugins") and .plugins.load.paths and (.plugins.load.paths | length > 0)' "$config_file" 2>/dev/null)
+        [ "$has_paths" = "true" ] || { log_info "No plugins.load.paths to check"; return 0; }
+
+        # 获取所有路径
+        local paths
+        paths=$(jq -r '.plugins.load.paths[]? // empty' "$config_file" 2>/dev/null)
+
+        if [ -z "$paths" ]; then
+            log_info "plugins.load.paths is empty"
+            return 0
+        fi
+
+        # 检查每个路径
+        local invalid_paths=""
+        local valid_paths="[]"
+        local count=0
+        
+        for path in $paths; do
+            count=$((count + 1))
+            # 展开路径
+            local expanded="${path//\~/$HOME}"
+            expanded="${expanded//\$HOME/$HOME}"
+            
+            if [ ! -d "$expanded" ]; then
+                invalid_paths="$invalid_paths $path"
+                log_warn "Invalid path found: $path"
+            else
+                # 保留有效路径
+                valid_paths=$(echo "$valid_paths" | jq --arg p "$path" '. + [$p]')
+            fi
+        done
+
+        if [ -z "$invalid_paths" ]; then
+            log_info "All $count plugin paths are valid"
+            return 0
+        fi
+
+        # 备份
+        backup_create "repair-plugins-paths" >/dev/null
+
+        # 更新配置
+        log_info "Removing invalid paths from config..."
+        
+        local tmp_file
+        tmp_file=$(mktemp)
+        
+        if jq --argjson paths "$valid_paths" '.plugins.load.paths = $paths' "$config_file" > "$tmp_file"; then
+            mv "$tmp_file" "$config_file"
+            local removed_count
+            removed_count=$(echo "$invalid_paths" | wc -w)
+            log_info "Config updated: removed $removed_count invalid path(s)"
+            printf "   [OK] Removed paths:%s\n" "$invalid_paths"
+        else
+            rm -f "$tmp_file"
+            log_error "Failed to update config"
+            return 1
+        fi
+
+        # 提示重启
+        log_info "Restart gateway to apply changes: systemctl --user restart openclaw-gateway"
+
+        return 0
+    }
+}
+
+# --- repair-plugins-sdk.sh ---
+# repair-plugins-sdk.sh - Fix plugin SDK compatibility issues
+# Handles: ERR_MODULE_NOT_FOUND (plugin-sdk), api.config.get incompatibility,
+#          and invalid plugins.load.paths entries
+
+repair_plugins_sdk() {
+    describe() {
+        echo "Fix plugin SDK module missing or API incompatibility issues"
+    }
+
+    dry_run() {
+        echo "What would happen:"
+        echo "  - Detect root cause: module missing vs API incompatibility vs bad paths"
+        echo "  - For ERR_MODULE_NOT_FOUND: attempt npm install in the plugin directory"
+        echo "  - For api.config.get / API error: disable the offending plugin (rename .js -> .clawicu-disabled)"
+        echo "  - For invalid plugins.load.paths: remove non-existent entries from config"
+    }
+
+    # Re-parse doctor output to get current details
+    _sdk_doctor_out() {
+        echo "${CLAWICU_DOCTOR_OUT:-}"
+    }
+
+    # Find path of the plugin with SDK import error
+    _find_sdk_plugin_path() {
+        local doc="$(_sdk_doctor_out)"
+        [ -f "$doc" ] || return 1
+        grep "imported from\|ERR_MODULE_NOT_FOUND" "$doc" 2>/dev/null | head -1 \
+            | grep -o '/[^ ]*\.js' | head -1
+    }
+
+    # Find path of the plugin with API incompatibility (at activate ...)
+    _find_api_broken_path() {
+        local doc="$(_sdk_doctor_out)"
+        [ -f "$doc" ] || return 1
+        grep "at activate" "$doc" 2>/dev/null | head -1 \
+            | grep -o '(/[^)]*)' | tr -d '()' | sed 's/:[0-9]*:[0-9]*$//'
+    }
+
+    # Find plugin ID from "WARN id: plugin register returned a promise" line
+    _find_api_broken_id() {
+        local doc="$(_sdk_doctor_out)"
+        [ -f "$doc" ] || return 1
+        grep "plugin register returned a promise\|async registration is ignored" "$doc" 2>/dev/null \
+            | head -1 | sed 's/.*WARN[[:space:]]*\([a-zA-Z0-9_-]*\):.*/\1/'
+    }
+
+    # Remove invalid entries from plugins.load.paths in config
+    _fix_invalid_paths() {
+        local config_file="$HOME/.openclaw/openclaw.json"
+        [ -f "$config_file" ] || return 0
+        command -v jq >/dev/null 2>&1 || {
+            log_warn "jq not available; cannot auto-fix plugins.load.paths"
+            return 1
+        }
+
+        local paths
+        paths=$(jq -r '.plugins.load.paths[]? // empty' "$config_file" 2>/dev/null)
+        [ -n "$paths" ] || return 0
+
+        local removed=0
+        local valid_json="[]"
+        for path in $paths; do
+            expanded="${path/#\~/$HOME}"
+            expanded="${expanded/\$HOME/$HOME}"
+            if [ -d "$expanded" ]; then
+                valid_json=$(printf '%s' "$valid_json" | jq --arg p "$path" '. + [$p]')
+            else
+                log_warn "Removing invalid path: $path"
+                removed=$((removed + 1))
+            fi
+        done
+
+        [ "$removed" -eq 0 ] && return 0
+
+        local tmp
+        tmp=$(mktemp)
+        if jq --argjson v "$valid_json" '.plugins.load.paths = $v' "$config_file" > "$tmp"; then
+            mv "$tmp" "$config_file"
+            printf "   [OK] Removed %d invalid plugin path(s) from config\n" "$removed"
+            return 0
+        fi
+        rm -f "$tmp"
+        return 1
+    }
+
+    execute() {
+        log_info "Starting plugin SDK repair..."
+
+        local doc="${CLAWICU_DOCTOR_OUT:-}"
+        local repaired=0
+
+        # --- Case 1: ERR_MODULE_NOT_FOUND for plugin-sdk ---
+        if [ -f "$doc" ] && grep -q "Cannot find module.*plugin-sdk\|ERR_MODULE_NOT_FOUND.*plugin-sdk" "$doc" 2>/dev/null; then
+            printf "   [*] Detected: plugin-sdk module missing\n"
+            local broken_path
+            broken_path="$(_find_sdk_plugin_path)"
+            if [ -n "$broken_path" ]; then
+                local plugin_dir
+                plugin_dir="$(dirname "$broken_path")"
+                # Walk up to find the directory with package.json
+                while [ -n "$plugin_dir" ] && [ "$plugin_dir" != "/" ]; do
+                    [ -f "$plugin_dir/package.json" ] && break
+                    plugin_dir="$(dirname "$plugin_dir")"
+                done
+                if [ -f "$plugin_dir/package.json" ]; then
+                    printf "   [*] Running npm install in: %s\n" "$plugin_dir"
+                    if (cd "$plugin_dir" && npm install --prefer-offline 2>/dev/null); then
+                        printf "   [OK] npm install succeeded\n"
+                        repaired=$((repaired + 1))
+                    else
+                        printf "   [!] npm install failed - disabling plugin instead\n"
+                        if mv "$broken_path" "${broken_path}.clawicu-disabled" 2>/dev/null; then
+                            printf "   [OK] Plugin disabled: %s\n" "$broken_path"
+                            repaired=$((repaired + 1))
+                        fi
+                    fi
+                fi
+            fi
+        fi
+
+        # --- Case 2: api.config.get / API incompatibility ---
+        if [ -f "$doc" ] && grep -q "api\.config\.get is not a function\|TypeError:.*is not a function\|ReferenceError:" "$doc" 2>/dev/null; then
+            printf "   [*] Detected: plugin API incompatibility (api.config.get)\n"
+            local broken_path broken_id
+            broken_path="$(_find_api_broken_path)"
+            broken_id="$(_find_api_broken_id)"
+
+            if [ -n "$broken_path" ] && [ -f "$broken_path" ]; then
+                if mv "$broken_path" "${broken_path}.clawicu-disabled" 2>/dev/null; then
+                    printf "   [OK] Plugin disabled: %s\n" "$broken_path"
+                    printf "   [i]  Restore: mv \"%s.clawicu-disabled\" \"%s\"\n" "$broken_path" "$broken_path"
+                    repaired=$((repaired + 1))
+                fi
+            fi
+
+            # Also add to plugins.deny if we have an ID
+            if [ -n "$broken_id" ] && command -v openclaw >/dev/null 2>&1; then
+                openclaw config set "plugins.deny" "[\"${broken_id}\"]" 2>/dev/null && \
+                    printf "   [OK] Added '%s' to plugins.deny\n" "$broken_id" || true
+            fi
+        fi
+
+        # --- Case 3: Invalid plugins.load.paths ---
+        if _fix_invalid_paths; then
+            repaired=$((repaired + 1))
+        fi
+
+        if [ "$repaired" -eq 0 ]; then
+            log_warn "Could not automatically repair plugin SDK issues"
+            printf "   [!] Manual steps:\n"
+            printf "       1. Run: openclaw update\n"
+            printf "       2. Or disable the broken plugin manually\n"
+            return 1
+        fi
+
+        # Verify
+        local verify="$CLAWICU_TMPDIR/doctor-verify-sdk.txt"
+        openclaw doctor > "$verify" 2>&1 || true
+        if ! grep -q "api\.config\.get is not a function\|ERR_MODULE_NOT_FOUND.*plugin-sdk" "$verify" 2>/dev/null; then
+            printf "   [OK] Verification passed\n"
+        fi
+
+        return 0
+    }
+}
+
 # --- repair-plugins.sh ---
 # repair-plugins.sh - Disable plugins that crash or use deprecated APIs
 
@@ -3584,9 +4152,113 @@ repair_sessions() {
     }
 }
 
+# --- repair-version-mismatch.sh ---
+# repair-version-mismatch.sh - Restart Gateway to resolve CLI/Gateway version mismatch
+
+repair_version_mismatch() {
+    describe() {
+        echo "Restart OpenClaw Gateway to match the currently installed CLI version"
+    }
+
+    dry_run() {
+        echo "What would happen:"
+        echo "  - Detect how the gateway was started (systemd, launchd, direct process)"
+        echo "  - Restart the gateway service"
+        echo "  - Verify the version mismatch is resolved"
+    }
+
+    execute() {
+        log_info "Starting version mismatch repair (gateway restart)..."
+
+        local restarted=0
+
+        # --- Strategy 1: systemd (Linux user service) ---
+        if command -v systemctl >/dev/null 2>&1; then
+            if systemctl --user is-active openclaw-gateway >/dev/null 2>&1; then
+                printf "   [*] Restarting systemd user service: openclaw-gateway\n"
+                if systemctl --user restart openclaw-gateway 2>/dev/null; then
+                    printf "   [OK] Gateway restarted via systemd\n"
+                    restarted=1
+                else
+                    log_warn "systemctl restart failed"
+                fi
+            fi
+        fi
+
+        # --- Strategy 2: launchd (macOS) ---
+        if [ "$restarted" -eq 0 ] && command -v launchctl >/dev/null 2>&1; then
+            local plist_label
+            plist_label=$(launchctl list 2>/dev/null | grep "openclaw" | awk '{print $3}' | head -1)
+            if [ -n "$plist_label" ]; then
+                printf "   [*] Restarting launchd service: %s\n" "$plist_label"
+                if launchctl kickstart -k "gui/$(id -u)/$plist_label" 2>/dev/null; then
+                    printf "   [OK] Gateway restarted via launchd\n"
+                    restarted=1
+                fi
+            fi
+        fi
+
+        # --- Strategy 3: openclaw daemon commands ---
+        if [ "$restarted" -eq 0 ] && command -v openclaw >/dev/null 2>&1; then
+            printf "   [*] Restarting via openclaw daemon stop/start\n"
+            openclaw daemon stop 2>/dev/null || true
+            sleep 1
+            if openclaw daemon start 2>/dev/null; then
+                printf "   [OK] Gateway restarted via openclaw daemon\n"
+                restarted=1
+            fi
+        fi
+
+        # --- Strategy 4: kill and restart process directly ---
+        if [ "$restarted" -eq 0 ]; then
+            local pid
+            pid=$(pgrep -f "openclaw.*gateway\|openclaw-gateway" 2>/dev/null | head -1)
+            if [ -n "$pid" ]; then
+                printf "   [*] Killing gateway process %s and restarting\n" "$pid"
+                kill "$pid" 2>/dev/null || true
+                sleep 2
+                if command -v openclaw >/dev/null 2>&1; then
+                    openclaw gateway &
+                    sleep 2
+                    if pgrep -f "openclaw.*gateway" >/dev/null 2>&1; then
+                        printf "   [OK] Gateway process restarted\n"
+                        restarted=1
+                    fi
+                fi
+            fi
+        fi
+
+        if [ "$restarted" -eq 0 ]; then
+            log_warn "Could not automatically restart the gateway"
+            printf "   [!] Manual fix: restart your gateway service\n"
+            printf "       Linux:  systemctl --user restart openclaw-gateway\n"
+            printf "       macOS:  openclaw daemon stop && openclaw daemon start\n"
+            return 1
+        fi
+
+        # Verify version match after restart (wait a moment for it to settle)
+        sleep 2
+        local cli_ver gateway_ver
+        cli_ver=$(openclaw --version 2>/dev/null | grep -oE '[0-9]{4}\.[0-9]+\.[0-9]+' | head -1)
+        gateway_ver=$(curl -sf "http://localhost:18789/healthz" 2>/dev/null | grep -oE '"version":"[^"]*"' | cut -d'"' -f4)
+
+        if [ -n "$cli_ver" ] && [ -n "$gateway_ver" ]; then
+            if [ "$cli_ver" = "$gateway_ver" ]; then
+                printf "   [OK] Versions now match: CLI=%s Gateway=%s\n" "$cli_ver" "$gateway_ver"
+            else
+                printf "   [!] Versions still differ: CLI=%s Gateway=%s\n" "$cli_ver" "$gateway_ver"
+            fi
+        else
+            printf "   [i] Could not verify version match (gateway may still be starting up)\n"
+        fi
+
+        return 0
+    }
+}
+
 # === BUNDLED DISPATCH LISTS ===
-_CLAWICU_CHECK_FNS="binary config_schema config credentials daemon disk docker envvars exec_approvals gateway install_method node plugins port sessions state_dir version"
-_CLAWICU_REPAIR_FNS="config_field config credentials daemon docker downgrade gateway nuclear plugins port reinstall sessions"
+_CLAWICU_CHECK_FNS="binary channel_policy config_schema config credentials daemon disk docker envvars exec_approvals gateway install_method node plugins_sdk plugins port sessions state_dir version_mismatch version"
+_CLAWICU_REPAIR_FNS="channel_policy config_field config credentials daemon docker downgrade gateway nuclear plugins_paths plugins_sdk plugins port reinstall sessions version_mismatch"
 
 # === MAIN ORCHESTRATOR ===
 
