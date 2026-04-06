@@ -7,11 +7,17 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { GridBackground } from "@/components/effects";
 
 export const metadata: Metadata = {
-  title: "Rescue Protocol",
+  title: "Rescue Protocol — How ClawICU Fixes OpenClaw",
   description:
-    "6-phase rescue protocol: doctor check, diagnostics, triage, treatment plan, execute, and report.",
+    "ClawICU's 6-phase rescue protocol: crash-safe doctor check (30s timeout), 20 diagnostic checks, triage by severity, interactive treatment menu, targeted repairs with auto-backup, and verification.",
   alternates: {
     canonical: "/rescue/",
+  },
+  openGraph: {
+    title: "Rescue Protocol — How ClawICU Fixes OpenClaw",
+    description:
+      "6 phases from detection to verified repair. Run: curl -fsSL https://xagent.icu/r | sh",
+    type: "article",
   },
 };
 

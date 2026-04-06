@@ -21,16 +21,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const issue = getIssueBySlug(slug);
   if (!issue) return { title: "Not Found" };
   return {
-    title: issue.title,
+    title: `${issue.title} — How to Diagnose & Fix`,
     description: issue.description,
     alternates: {
       canonical: `/docs/${slug}/`,
     },
     openGraph: {
-      title: `${issue.title} | ClawICU`,
+      title: `${issue.title} | ClawICU Docs`,
       description: issue.description,
       url: `https://xagent.icu/docs/${slug}/`,
       type: "article",
+      publishedTime: "2026-04-04",
+      modifiedTime: "2026-04-06",
+    },
+    twitter: {
+      card: "summary",
+      title: `${issue.title} | ClawICU`,
+      description: issue.description,
     },
   };
 }
@@ -40,8 +47,53 @@ export default async function DocPage({ params }: PageProps) {
   const issue = getIssueBySlug(slug);
   if (!issue) notFound();
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: "https://xagent.icu/" },
+          { "@type": "ListItem", position: 2, name: "Docs", item: "https://xagent.icu/docs/" },
+          { "@type": "ListItem", position: 3, name: issue.title, item: `https://xagent.icu/docs/${slug}/` },
+        ],
+      },
+      {
+        "@type": "TechArticle",
+        "@id": `https://xagent.icu/docs/${slug}/#article`,
+        headline: `${issue.title} — How to Diagnose & Fix`,
+        description: issue.description,
+        url: `https://xagent.icu/docs/${slug}/`,
+        inLanguage: "en-US",
+        datePublished: "2026-04-04",
+        dateModified: "2026-04-06",
+        author: { "@type": "Organization", name: "ClawICU", url: "https://xagent.icu" },
+        publisher: { "@type": "Organization", name: "ClawICU", url: "https://xagent.icu" },
+        isPartOf: { "@type": "WebSite", url: "https://xagent.icu" },
+        about: { "@type": "SoftwareApplication", name: "OpenClaw" },
+        proficiencyLevel: "Beginner",
+        articleSection: "Troubleshooting",
+      },
+      {
+        "@type": "HowTo",
+        name: `How to fix: ${issue.title}`,
+        description: issue.diagnosis,
+        url: `https://xagent.icu/docs/${slug}/`,
+        step: issue.steps.map((step, i) => ({
+          "@type": "HowToStep",
+          position: i + 1,
+          text: step,
+        })),
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <Header />
       <main className="min-h-screen pt-24 pb-16">
         <div className="mx-auto max-w-3xl px-6">
