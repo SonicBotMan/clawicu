@@ -22,7 +22,7 @@ cat > "$OUTPUT_FILE" << 'HEADER'
 
 set -e
 
-CLAWICU_VERSION="0.1.0"
+CLAWICU_VERSION="0.2.0"
 CLAWICU_TMPDIR="${CLAWICU_TMPDIR:-/tmp/clawicu-$$}"
 HEADER
 

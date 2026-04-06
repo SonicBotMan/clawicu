@@ -5,7 +5,7 @@
 
 set -e
 
-CLAWICU_VERSION="0.1.0"
+CLAWICU_VERSION="0.2.0"
 CLAWICU_TMPDIR="${CLAWICU_TMPDIR:-/tmp/clawicu-$$}"
 
 # === LIBRARIES ===
@@ -4396,7 +4396,7 @@ _CLAWICU_REPAIR_FNS="channel_policy config_field config credentials daemon docke
 # === MAIN ORCHESTRATOR ===
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-CLAWICU_VERSION="0.1.0"
+CLAWICU_VERSION="0.2.0"
 
 
 bootstrap
@@ -4425,6 +4425,7 @@ phase_0_bootstrap() {
     
     printf "   ${C_CYAN}*${C_NC} System: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Arch: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Shell: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_OS" "$CLAWICU_ARCH" "$CLAWICU_SHELL"
     printf "   ${C_CYAN}*${C_NC} Install: ${C_BOLD}%s${C_NC} | ${C_CYAN}*${C_NC} Version: ${C_BOLD}%s${C_NC}\n" "$CLAWICU_INSTALL_METHOD" "$CLAWICU_VERSION"
+    printf "   ${C_CYAN}*${C_NC} Docs:    ${C_BOLD}https://xagent.icu/${C_NC}\n"
     printf "\n"
     
     printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
