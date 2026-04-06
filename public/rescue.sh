@@ -3566,9 +3566,9 @@ phase_2_checks() {
     printf "   ${C_DIM}-------------------------------------------------------------${C_NC}\n"
     
     local fail_count
-    fail_count="$(grep -c "^FAIL:" "$RESULTS_FILE" 2>/dev/null || echo 0)"
+    fail_count="$(grep "^FAIL:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
     local warn_count
-    warn_count="$(grep -c "^WARN:" "$RESULTS_FILE" 2>/dev/null || echo 0)"
+    warn_count="$(grep "^WARN:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
     
     if [ "$fail_count" -gt 0 ] || [ "$warn_count" -gt 0 ]; then
         printf "   ${C_RED}[!!] Issues Found: ${C_BOLD}%s FATAL${C_NC}" "$fail_count"
@@ -3583,9 +3583,9 @@ phase_3_triage() {
     phase_indicator 3 6 "Triage & Analysis"
     
     # Phase 2 writes records as "WARN:<severity>:..." - match that prefix, not "FAIL:".
-    FATAL_COUNT="$(grep -c "^WARN:fatal:" "$RESULTS_FILE" 2>/dev/null || echo 0)"
-    WARN_COUNT="$(grep -c "^WARN:warn:"  "$RESULTS_FILE" 2>/dev/null || echo 0)"
-    INFO_COUNT="$(grep -c "^WARN:info:"  "$RESULTS_FILE" 2>/dev/null || echo 0)"
+    FATAL_COUNT="$(grep "^WARN:fatal:" "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
+    WARN_COUNT="$(grep "^WARN:warn:"  "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
+    INFO_COUNT="$(grep "^WARN:info:"  "$RESULTS_FILE" 2>/dev/null | wc -l | tr -d " ")"
     
     [ -z "$FATAL_COUNT" ] && FATAL_COUNT=0
     [ -z "$WARN_COUNT" ] && WARN_COUNT=0
