@@ -43,7 +43,8 @@ echo "# === CHECK MODULES ===" >> "$OUTPUT_FILE"
 for check in "$RESCUE_DIR/checks"/check-*.sh; do
     echo "" >> "$OUTPUT_FILE"
     echo "# --- $(basename "$check") ---" >> "$OUTPUT_FILE"
-    grep -v '^#!/' "$check" >> "$OUTPUT_FILE" || true
+    # Strip shebang and source/dot commands (libs are already inlined above)
+    grep -v '^#!/' "$check" | grep -v '^\. "' >> "$OUTPUT_FILE" || true
 done
 
 # Inline repair modules
@@ -53,7 +54,8 @@ echo "# === REPAIR MODULES ===" >> "$OUTPUT_FILE"
 for repair in "$RESCUE_DIR/repairs"/repair-*.sh; do
     echo "" >> "$OUTPUT_FILE"
     echo "# --- $(basename "$repair") ---" >> "$OUTPUT_FILE"
-    grep -v '^#!/' "$repair" >> "$OUTPUT_FILE" || true
+    # Strip shebang and source/dot commands (libs are already inlined above)
+    grep -v '^#!/' "$repair" | grep -v '^\. "' >> "$OUTPUT_FILE" || true
 done
 
 # Inline main rescue.sh (without lib sourcing)

@@ -1215,10 +1215,6 @@ check_version() {
 
 set -e
 
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_config_field() {
     # Known resettable fields: dot-notation path → default value
@@ -1430,10 +1426,6 @@ fs.writeFileSync(cfgPath, JSON.stringify(obj, null, 2));
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_config() {
     describe() {
@@ -1607,10 +1599,6 @@ json.loads(txt)
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_credentials() {
     describe() {
@@ -1775,10 +1763,6 @@ PROVIDERS
 
 set -e
 
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_daemon() {
     _gateway_port="${OPENCLAW_GATEWAY_PORT:-18789}"
@@ -1913,10 +1897,6 @@ repair_daemon() {
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_docker() {
     describe() {
@@ -2196,10 +2176,6 @@ repair_docker() {
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_downgrade() {
     describe() {
@@ -2366,10 +2342,6 @@ repair_downgrade() {
 
 set -e
 
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_gateway() {
     _gateway_port="${OPENCLAW_GATEWAY_PORT:-18789}"
@@ -2543,10 +2515,6 @@ repair_gateway() {
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_nuclear() {
     describe() {
@@ -2731,10 +2699,6 @@ DEFCONFIG
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_plugins() {
     describe() {
@@ -2868,10 +2832,6 @@ repair_plugins() {
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_port() {
     describe() {
@@ -3137,10 +3097,6 @@ repair_port() {
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_reinstall() {
     describe() {
@@ -3351,10 +3307,6 @@ repair_reinstall() {
 set -e
 
 # Source dependencies
-. "$(dirname "$0")/../lib/bootstrap.sh"
-. "$(dirname "$0")/../lib/backup.sh"
-. "$(dirname "$0")/../lib/state.sh"
-. "$(dirname "$0")/../lib/log.sh"
 
 repair_sessions() {
     describe() {
