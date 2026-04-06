@@ -107,22 +107,33 @@ export function ShareSOSButton({ compact = false }: { compact?: boolean }) {
                   {TWEET_TEXT}
                 </p>
 
-                {/* Link card preview */}
-                <div className="mt-3 overflow-hidden rounded-xl border border-border/50">
-                  <div
-                    className="flex h-20 items-center justify-center text-xs text-muted-foreground"
-                    style={{
-                      background: "repeating-linear-gradient(45deg, rgba(255,77,77,0.08) 0px, rgba(255,77,77,0.08) 4px, transparent 4px, transparent 16px)",
-                    }}
-                  >
-                    <div className="text-center">
-                      <div className="font-mono font-bold text-primary text-sm">🚨 SOS</div>
-                      <div className="text-[11px] mt-1">xagent.icu/sos</div>
-                    </div>
+                {/* Link card preview — matches SOS share card URL strip */}
+                <div className="mt-3 overflow-hidden rounded-xl border border-[rgba(0,232,122,0.22)] bg-[#040807]">
+                  <div className="border-b border-[rgba(0,232,122,0.2)] px-3 py-1.5">
+                    <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[rgba(0,232,122,0.45)]">
+                      Primary endpoint
+                    </span>
                   </div>
-                  <div className="border-t border-border/40 px-3 py-2">
-                    <div className="text-xs font-semibold text-foreground">My OpenClaw just crashed!</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">xagent.icu</div>
+                  <div className="relative px-3 py-3">
+                    <div
+                      className="rounded-lg border border-[rgba(0,232,122,0.25)] px-3 py-2"
+                      style={{
+                        background: "linear-gradient(90deg, #061208 0%, #0a1812 100%)",
+                      }}
+                    >
+                      <p className="font-mono text-[13px] leading-snug">
+                        <span className="text-[#5a9a78]">https://</span>
+                        <span className="font-semibold text-[#d8ffe8]">xagent.icu</span>
+                        <span className="text-[#4a7a62]">/sos</span>
+                      </p>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-foreground">My OpenClaw just crashed!</span>
+                      <span className="flex items-center gap-1 font-mono text-[9px] font-bold uppercase tracking-wider text-[#00e87a]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#00e87a]" />
+                        Live
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
