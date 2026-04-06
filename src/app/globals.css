@@ -73,6 +73,15 @@
   --color-shadow-coral-soft: rgba(255, 77, 77, 0.15);
   --color-shadow-coral-mid: rgba(255, 77, 77, 0.25);
 
+  /* ── Medical / Emergency palette ── */
+  --color-medical-green:   #00e87a;   /* stable / all-clear */
+  --color-medical-amber:   #ffb020;   /* warning */
+  --color-medical-red:     #ff2d2d;   /* critical alert */
+  --color-medical-blue:    #3b9eff;   /* info / IV drip */
+  --color-sterile-white:   #e8edf5;
+  --color-icu-dark:        #030609;
+  --color-monitor-glow: rgba(0, 232, 122, 0.15);
+
   /* ── Radii ── */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -83,6 +92,47 @@
   --font-heading: var(--font-clash-display), system-ui, sans-serif;
   --font-sans: var(--font-satoshi), system-ui, sans-serif;
   --font-mono: "SF Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* ── Medical emergency animations ── */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14%       { transform: scale(1.15); }
+  28%       { transform: scale(1); }
+  42%       { transform: scale(1.1); }
+  70%       { transform: scale(1); }
+}
+
+@keyframes alert-flash {
+  0%, 100% { opacity: 1; border-color: rgba(255, 77, 77, 0.6); box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
+  50%       { opacity: 0.85; border-color: rgba(255, 77, 77, 1); box-shadow: 0 0 20px 4px rgba(255, 77, 77, 0.35); }
+}
+
+@keyframes siren-pulse {
+  0%, 100% { box-shadow: 0 0 8px 2px rgba(255, 77, 77, 0.3); }
+  50%       { box-shadow: 0 0 30px 8px rgba(255, 77, 77, 0.7); }
+}
+
+@keyframes vital-blink {
+  0%, 90%, 100% { opacity: 1; }
+  95%           { opacity: 0.2; }
+}
+
+@keyframes ecg-run {
+  0%   { stroke-dashoffset: 800; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes cross-spin {
+  0%   { transform: rotate(0deg) scale(1); opacity: 0.12; }
+  50%  { transform: rotate(180deg) scale(1.05); opacity: 0.18; }
+  100% { transform: rotate(360deg) scale(1); opacity: 0.12; }
+}
+
+@keyframes drip {
+  0%   { transform: translateY(-4px) scaleY(0.8); opacity: 0; }
+  40%  { opacity: 1; }
+  100% { transform: translateY(6px) scaleY(1.2); opacity: 0; }
 }
 
 @keyframes fade-up {
@@ -185,4 +235,47 @@
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ── Medical utilities ── */
+.animate-heartbeat   { animation: heartbeat 1.4s ease-in-out infinite; }
+.animate-alert-flash { animation: alert-flash 1.5s ease-in-out infinite; }
+.animate-siren       { animation: siren-pulse 1s ease-in-out infinite; }
+.animate-vital-blink { animation: vital-blink 2s ease-in-out infinite; }
+.animate-cross-spin  { animation: cross-spin 20s linear infinite; }
+.animate-drip        { animation: drip 2s ease-in-out infinite; }
+
+.medical-scanline::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 232, 122, 0.015) 2px,
+    rgba(0, 232, 122, 0.015) 4px
+  );
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.status-critical { color: #ff2d2d; }
+.status-warning  { color: #ffb020; }
+.status-stable   { color: #00e87a; }
+
+.badge-critical {
+  background: rgba(255, 45, 45, 0.15);
+  border: 1px solid rgba(255, 45, 45, 0.4);
+  color: #ff6060;
+}
+.badge-warning {
+  background: rgba(255, 176, 32, 0.12);
+  border: 1px solid rgba(255, 176, 32, 0.35);
+  color: #ffb020;
+}
+.badge-stable {
+  background: rgba(0, 232, 122, 0.12);
+  border: 1px solid rgba(0, 232, 122, 0.3);
+  color: #00e87a;
 }

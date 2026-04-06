@@ -1,4 +1,4 @@
-import { Heart, Github, ExternalLink, Zap, Shield, BookOpen, MessageCircle } from "lucide-react";
+import { Heart, Github, ExternalLink, Zap, Shield, MessageCircle, HeartPulse } from "lucide-react";
 
 const footerLinks = {
   Product: [
@@ -8,7 +8,7 @@ const footerLinks = {
     { label: "GitHub Repo", href: "https://github.com/SonicBotMan/clawicu" },
   ],
   Features: [
-    { label: "17 Diagnostic Checks", href: "/rescue" },
+    { label: "20 Diagnostic Checks", href: "/rescue" },
     { label: "12 Repair Modules", href: "/rescue" },
     { label: "Auto Backup", href: "/docs" },
     { label: "Multi-Platform", href: "/download" },
@@ -33,8 +33,11 @@ export function Footer() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-1">
             <a href="/" className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/30">
-                <span className="font-heading text-sm font-bold text-primary">C</span>
+              <div className="relative flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-primary/30">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 text-primary" fill="currentColor">
+                  <rect x="9"  y="2"  width="6" height="20" rx="1.5" />
+                  <rect x="2"  y="9"  width="20" height="6"  rx="1.5" />
+                </svg>
               </div>
               <span className="font-heading text-lg font-bold tracking-tight text-foreground">ClawICU</span>
             </a>
@@ -87,9 +90,19 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border/20 pt-8 sm:flex-row">
+        {/* Footer ECG divider */}
+        <div className="mt-12 mb-0 relative">
+          <svg viewBox="0 0 800 30" className="w-full opacity-[0.08]" fill="none" preserveAspectRatio="none">
+            <path d="M0,15 L120,15 L140,4 L155,26 L168,2 L182,28 L192,15 L340,15 L360,4 L375,26 L388,2 L402,28 L412,15 L560,15 L580,4 L595,26 L608,2 L622,28 L632,15 L800,15"
+              stroke="#00e87a" strokeWidth="1.5"
+              style={{ strokeDasharray: 1000, strokeDashoffset: 1000, animation: "ecg-run 6s linear infinite" }}
+            />
+          </svg>
+        </div>
+
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-border/20 pt-8 sm:flex-row">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Heart className="h-3.5 w-3.5 text-primary" />
+            <HeartPulse className="h-3.5 w-3.5 text-primary animate-heartbeat" />
             <span>{new Date().getFullYear()} ClawICU. Open Source under MIT License.</span>
           </div>
           <div className="flex items-center gap-6">

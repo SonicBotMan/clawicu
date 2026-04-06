@@ -32,14 +32,23 @@ export function Header() {
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
         <a href="/" className="flex items-center gap-2.5 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/30 transition-all group-hover:ring-primary/50 group-hover:shadow-[0_0_20px_rgba(255,77,77,0.2)]">
-            <span className="font-heading text-sm font-bold text-primary">
-              C
+          {/* Medical cross logo */}
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-primary/5 ring-1 ring-primary/40 transition-all group-hover:ring-primary/70 group-hover:shadow-[0_0_20px_rgba(255,77,77,0.3)]">
+            <svg viewBox="0 0 24 24" className="h-5 w-5 text-primary" fill="currentColor">
+              <rect x="9"  y="2"  width="6" height="20" rx="1.5" />
+              <rect x="2"  y="9"  width="20" height="6"  rx="1.5" />
+            </svg>
+            {/* Emergency indicator dot */}
+            <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-[#ff2d2d] ring-2 ring-background animate-vital-blink" />
+          </div>
+          <div className="flex flex-col leading-none">
+            <span className="font-heading text-lg font-bold tracking-tight text-foreground">
+              ClawICU
+            </span>
+            <span className="font-mono text-[9px] font-medium uppercase tracking-widest text-primary/60">
+              Emergency Rescue
             </span>
           </div>
-          <span className="font-heading text-lg font-bold tracking-tight text-foreground">
-            ClawICU
-          </span>
         </a>
 
         <nav className="hidden items-center gap-1 md:flex">
