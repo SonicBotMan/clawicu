@@ -12,7 +12,7 @@ const phases = [
   {
     icon: Stethoscope,
     title: "Diagnose",
-    description: "Run 17 diagnostic checks to pinpoint root cause",
+    description: "Run 20 diagnostic checks to pinpoint root cause",
     color: "text-accent",
   },
   {

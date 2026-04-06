@@ -56,7 +56,7 @@ const iconMap: Record<string, LucideIcon> = {
 export const metadata: Metadata = {
   title: "Issue Encyclopedia",
   description:
-    "24 OpenClaw issue guides covering pairing, channel auth, cron, heartbeat, and more. Diagnose and fix with step-by-step solutions.",
+    "25 OpenClaw issue guides covering plugin SDK incompatibility, channel policy, version mismatch, pairing, cron, heartbeat, and more. Diagnose and fix with step-by-step solutions.",
   alternates: {
     canonical: "/docs/",
   },
@@ -104,7 +104,7 @@ export default function DocsPage() {
 
           <div className="mb-6">
             <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              24 Issue Guides
+              25 Issue Guides
             </h2>
           </div>
 

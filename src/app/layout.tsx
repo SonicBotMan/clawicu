@@ -39,12 +39,15 @@ export const metadata: Metadata = {
     template: "%s | ClawICU",
   },
   description:
-    "Rescue system for OpenClaw. Diagnose pairing failures, channel auth errors, cron not running, and other common issues. One command: curl -fsSL https://xagent.icu/rescue.sh | sh",
+    "OpenClaw Emergency Rescue System v0.2.0. Run 20 diagnostic checks, auto-repair plugin crashes, version mismatches, channel policy issues, and more. One command: curl -fsSL https://xagent.icu/r | sh",
   keywords: [
     "OpenClaw",
     "ClawICU",
     "emergency rescue",
     "diagnostics",
+    "plugin SDK",
+    "version mismatch",
+    "channel policy",
     "pairing",
     "channel auth",
     "cron",

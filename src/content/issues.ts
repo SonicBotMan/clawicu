@@ -467,6 +467,48 @@ export const ISSUES: Issue[] = [
     relatedChecks: ["check-gateway", "check-config"],
     relatedRepairs: ["repair-gateway"],
   },
+  {
+    id: "plugin-sdk-incompatibility",
+    slug: "plugin-sdk-incompatibility",
+    title: "Plugin SDK Incompatibility",
+    description:
+      "A plugin uses an outdated OpenClaw SDK API (e.g. `api.config.get is not a function`) or the `plugin-sdk` module is missing entirely. This usually appears after upgrading OpenClaw without updating installed plugins, causing the gateway to hang or emit unhandled promise rejections.",
+    icon: "Puzzle",
+    severity: "fatal",
+    diagnosis:
+      "Run `openclaw doctor` and look for `TypeError: api.config.get is not a function`, `ERR_MODULE_NOT_FOUND: plugin-sdk`, or `Unhandled promise rejection`. The stack trace includes `at activate (...)` pointing to the broken plugin file.",
+    steps: [
+      "Identify the offending plugin from the stack trace: look for `at activate (/path/to/plugin.js:...)` in doctor output",
+      "For missing plugin-sdk: `cd ~/.openclaw/extensions/<plugin>/ && npm install --prefer-offline`",
+      "If npm install fails, disable the plugin: `mv ~/.openclaw/extensions/<plugin>/dist-node/index.js ~/.openclaw/extensions/<plugin>/dist-node/index.js.disabled`",
+      "Add the plugin to deny list to prevent auto-load: `openclaw config set plugins.deny '[\"<plugin-id>\"]'`",
+      "Verify the fix: run `openclaw doctor` again — the TypeError should no longer appear",
+      "To re-enable later: update the plugin to a version compatible with your OpenClaw version",
+    ],
+    relatedChecks: ["check-plugins-sdk", "check-plugins"],
+    relatedRepairs: ["repair-plugins-sdk", "repair-plugins"],
+  },
+  {
+    id: "channel-policy-issues",
+    slug: "channel-policy-issues",
+    title: "Channel Policy Blocking Messages",
+    description:
+      "Discord (or other channel) messages are silently ignored because the channel policy is too restrictive. The most common case: `groupPolicy: 'allowlist'` combined with `requireMention: true` causes direct messages to the bot to never receive a response.",
+    icon: "ShieldAlert",
+    severity: "warn",
+    diagnosis:
+      "Check config: `openclaw config get channels.discord`. If `groupPolicy` is `allowlist` and any guild has `requireMention: true`, DMs will be dropped. Also check `allowFrom` — if it is empty and policy is not `open`, no users can message the bot.",
+    steps: [
+      "Inspect current policy: `openclaw config get channels.discord`",
+      "To allow DMs from everyone, set groupPolicy to open: `openclaw config set channels.discord.groupPolicy open`",
+      "To keep allowlist but fix DMs, remove `requireMention` from the affected guild config",
+      "If `allowFrom` is empty, add user IDs: `openclaw config set channels.discord.allowFrom '[\"<user-id>\"]'` or change policy to `open`",
+      "After changing config, restart the gateway: `systemctl --user restart openclaw-gateway` (Linux) or `openclaw daemon stop && openclaw daemon start` (macOS)",
+      "Test by sending a direct message to the bot",
+    ],
+    relatedChecks: ["check-channel-policy"],
+    relatedRepairs: ["repair-channel-policy"],
+  },
 ];
 
 export function getIssueBySlug(slug: string): Issue | undefined {

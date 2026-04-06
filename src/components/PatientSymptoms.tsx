@@ -1,5 +1,5 @@
 "use client";
-import { FileWarning, Puzzle, Wifi, Cpu, KeyRound, Network } from "lucide-react";
+import { FileWarning, Puzzle, Wifi, Cpu, KeyRound, RefreshCcw, ShieldAlert, GitCompare } from "lucide-react";
 import { IssueCard } from "./IssueCard";
 import type { LucideIcon } from "lucide-react";
 
@@ -15,37 +15,49 @@ const symptoms: Symptom[] = [
     icon: FileWarning,
     title: "Config Corruption",
     severity: "critical",
-    description: "Configuration file has invalid JSON5 syntax or is corrupted",
+    description: "Configuration file has invalid JSON5 syntax or is corrupted, preventing OpenClaw from starting",
   },
   {
     icon: Puzzle,
-    title: "Plugin Failure",
+    title: "Plugin / SDK Failure",
     severity: "warning",
-    description: "Plugin manifests broken or plugins failing to load",
+    description: "Plugin crashes at activation, uses deprecated API (api.config.get), or plugin-sdk module is missing",
   },
   {
     icon: Wifi,
     title: "Gateway Offline",
     severity: "critical",
-    description: "Gateway not running on port 18789",
+    description: "OpenClaw gateway not running on port 18789, all agent channels unreachable",
   },
   {
     icon: Cpu,
-    title: "Daemon Unresponsive",
+    title: "Daemon Not Installed",
     severity: "warning",
-    description: "launchd/systemd service not properly installed",
+    description: "launchd (macOS) or systemd (Linux) service not registered — OpenClaw won't auto-start on boot",
   },
   {
     icon: KeyRound,
-    title: "Auth Failure",
+    title: "Missing Credentials",
     severity: "critical",
-    description: "Provider API keys missing or authentication failures",
+    description: "Provider API keys (OpenAI, Anthropic, Google…) missing or empty in the credentials store",
   },
   {
-    icon: Network,
-    title: "Port Conflict",
+    icon: GitCompare,
+    title: "Version Mismatch",
     severity: "warning",
-    description: "Port 18789 is occupied by another process",
+    description: "CLI and Gateway are running different versions after an upgrade — gateway restart resolves it",
+  },
+  {
+    icon: ShieldAlert,
+    title: "Channel Policy Issue",
+    severity: "warning",
+    description: "Discord groupPolicy set to 'allowlist' with requireMention=true causes DMs to be silently ignored",
+  },
+  {
+    icon: RefreshCcw,
+    title: "plugins.allow Empty",
+    severity: "warning",
+    description: "All discovered plugins auto-load without an explicit allow list, creating a security risk",
   },
 ];
 
