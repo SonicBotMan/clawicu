@@ -402,6 +402,14 @@ phase_6_report() {
 }
 
 main() {
+    # When run as 'curl | sh', the shell's stdin is the pipe (EOF after the
+    # script is read). Redirect stdin from /dev/tty so that ALL read commands
+    # throughout the script (menu selection, API key input, confirmations)
+    # receive keyboard input instead of immediate EOF -> default value.
+    if [ ! -t 0 ] && [ -r /dev/tty ]; then
+        exec </dev/tty
+    fi
+
     phase_0_bootstrap
     phase_1_doctor || true
     phase_2_checks
