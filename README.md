@@ -31,22 +31,6 @@ Your gateway was fine yesterday. Today: **plugins throwing `api.config.get`**, *
 
 ## Run it (copy once, use everywhere)
 
-```bash
-curl -fsSL https://xagent.icu/r | sh
-```
-
-<details>
-<summary><strong>Alternatives</strong></summary>
-
-```bash
-# Explicit script URL (same bytes as /r)
-curl -fsSL https://xagent.icu/rescue.sh | sh
-
-# Save, inspect, then run
-curl -fsSL https://xagent.icu/r -o rescue.sh && chmod +x rescue.sh && ./rescue.sh
-```
-
-</details>
 
 **POSIX `sh`** · **stdin reattached to `/dev/tty`** so interactive menus work when piped · **Automatic backups** before risky repairs where applicable.
 
